@@ -41,7 +41,7 @@ export function validateField(fieldName, fieldObj) {
     renderMsgField(errors, fieldObj.element);
 }
 
-function renderMsgField(errors, element) {
+export function renderMsgField(errors, element) {
     let nodes = [...element.closest(".form__campo").getElementsByClassName('form__campo--error')];
     if (nodes.length > 0) {
         nodes.forEach((node) => {
