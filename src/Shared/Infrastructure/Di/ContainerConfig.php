@@ -37,6 +37,9 @@ final class ContainerConfig {
             "App\Auth\Application\UseCase\PasswordRecovery" => "App\Auth\Application\UseCase\PasswordRecovery",
             "App\Auth\Infrastructure\EventListener\SendPasswordRecoveryEmail" => "App\Auth\Infrastructure\EventListener\SendPasswordRecoveryEmail",
 
+            "App\Auth\Infrastructure\Controllers\VerifyResetPasswordTokenController" => "App\Auth\Infrastructure\Controllers\VerifyResetPasswordTokenController",
+            "App\Auth\Application\UseCase\VerifyResetPasswordToken" => "App\Auth\Application\UseCase\VerifyResetPasswordToken",
+
             "App\Auth\Infrastructure\Controllers\ResetPasswordController" => "App\Auth\Infrastructure\Controllers\ResetPasswordController",
             "App\Auth\Application\UseCase\ResetPassword" => "App\Auth\Application\UseCase\ResetPassword",
             
