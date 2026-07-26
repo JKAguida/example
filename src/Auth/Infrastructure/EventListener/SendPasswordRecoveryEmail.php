@@ -70,7 +70,7 @@ final class SendPasswordRecoveryEmail implements EventListenerInterface {
                                         <table cellpadding="0" cellspacing="0" border="0">
                                             <tr>
                                                 <td align="center" bgcolor="#0d166b" style="border-radius: 8px;">
-                                                    <a href="{$host}/Auth/ResetPassword/reset-password.html?confirmation={$token}"
+                                                    <a href="{$host}/Auth/VerifyResetPasswordToken/verify-reset-password-token.html?confirmation={$token}"
                                                         target="_blank"
                                                         style="text-transform: uppercase; font-size: 16px; font-weight: bold; color: #ffffff; text-decoration: none; padding: 15px 30px; display: inline-block; font-family: 'Segoe UI', sans-serif;">
                                                         Recuperar Cuenta
