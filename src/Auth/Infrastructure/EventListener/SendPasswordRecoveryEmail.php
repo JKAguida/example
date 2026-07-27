@@ -17,37 +17,79 @@ final class SendPasswordRecoveryEmail implements EventListenerInterface {
 
     public function handle(DomainEventInterface $event): void {
         if(!$event instanceof PasswordRecoveryRequested) return;
-
+        $host = getenv('ORIGIN_ONE');
+        $token = $event->tokenRecoveryValue()->value();
         $body =<<<HTML
             <!DOCTYPE html>
-            <html lang="en">
+            <html lang="es">
+
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Cambio de contraseña</title>
-                <style>
-                    @media(min-width:768px){
-                        header,main{
-                            width: 50%;
-                        }
-                    }
-                </style>
+                <title>Recuperación de la cuenta</title>
             </head>
-            <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; box-sizing: border-box; background-color: rgba(19, 1, 29, 0.74); width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem;">
-                <header style="display: flex; flex-direction: column; align-items: center; justify-content: center;" >
-                    <div style="padding: .5rem 1.5rem; width: 100%;">
-                        <h1 style="font-size: 2rem; color: aliceblue; font-weight: 400; width: 100%; text-align: left;">JK<strong style="font-weight: 900;">App</strong></h1>
-                    </div>
-                </header>
-                <main style="border-radius: .5rem; background-color: rgb(13, 6, 19); color: aliceblue; padding: 1rem 1rem 3rem 1rem; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                        <h2 style="padding-bottom: 1rem; text-align: center;">Solicitud de cambio de contraseña</h2>
-                        <div style="text-align: center; width: 70%; padding-bottom: 2rem;">
-                            <p>Gracias por usar <strong>JKApp</strong></p>
-                            <p>Para continuar con el proceso y cambiar tu contraseña da click en el botón de abajo.</p>
-                            <small style="width:100%; font-weight:300;" >Si tu no solicitaste este cambio, puedes ignorar el mensaje.</small>
-                        </div>
-                        <a style="text-decoration: none; color: aliceblue; font-weight: 700; background: rgb(13, 22, 107); padding: 1rem 1.5rem; border-radius: .5rem;" href="example.html?confirmation={$event->tokenRecoveryValue()->value()}" target="_blank">Cambiar contraseña</a>
-                </main>
+
+            <body
+                style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #13011d; width: 100%;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#13011d" style="table-layout: fixed;">
+                    <tr>
+                        <td align="center" style="padding: 20px 10px;">
+
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto;">
+                                <tr>
+                                    <td align="left" style="padding: 10px 24px;">
+                                        <h1
+                                            style="font-size: 32px; color: #ffffff; font-weight: 400; margin: 0; font-family: 'Segoe UI', sans-serif;">
+                                            JK<strong style="font-weight: 900;">App</strong>
+                                        </h1>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td height="10"></td>
+                                </tr>
+
+                                <tr>
+                                    <td align="center" bgcolor="#0d0613" style="padding: 40px 30px; border-radius: 8px;">
+
+                                        <h2
+                                            style="font-size: 24px; color: #ffffff; margin: 0 0 20px 0; text-align: center; font-family: 'Segoe UI', sans-serif;">
+                                            Recupera tu cuenta
+                                        </h2>
+
+                                        <p
+                                            style="font-size: 16px; color: #ffffff; margin: 0 0 10px 0; text-align: center; line-height: 1.5;">
+                                            Gracias por usar <strong>JKApp</strong>
+                                        </p>
+
+                                        <p
+                                            style="font-size: 16px; color: #ffffff; margin: 0 0 30px 0; text-align: center; line-height: 1.5; padding: 0 10%;">
+                                            Si solicitaste cambiar tu contraseña, da click en el boton de abajo para confirmar que eres tú.
+                                        </p>
+
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td align="center" bgcolor="#0d166b" style="border-radius: 8px;">
+                                                    <a href="{$host}/Auth/ResetPassword/reset-password.html?confirmation={$token}"
+                                                        target="_blank"
+                                                        style="text-transform: uppercase; font-size: 16px; font-weight: bold; color: #ffffff; text-decoration: none; padding: 15px 30px; display: inline-block; font-family: 'Segoe UI', sans-serif;">
+                                                        Recuperar Cuenta
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <p 
+                                            style="font-size: 14px; color: #ffffff; margin: 30px 0 0 0; text-align: center; line-height: 1.5; padding: 0 10%;"
+                                        >
+                                            Si tu no solicitaste nada, puedes ignorar este mensaje.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
             </body>
             </html>
         HTML;

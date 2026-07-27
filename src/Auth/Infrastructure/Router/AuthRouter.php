@@ -6,6 +6,7 @@ final class AuthRouter {
     private static array $routes = [
         'GET' => [
             "/auth/confirm" => "App\Auth\Infrastructure\Controllers\AccountConfirmController",
+            "/auth/verify-reset-token" => "App\Auth\Infrastructure\Controllers\VerifyResetPasswordTokenController",
         ],
         'POST' => [
             "/auth/register" => "App\Auth\Infrastructure\Controllers\RegisterController",
