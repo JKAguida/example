@@ -14,7 +14,8 @@ final class AuthRouter {
             "/auth/request-new-password" => "App\Auth\Infrastructure\Controllers\PasswordRecoveryController",
             "/auth/reset-password" => "App\Auth\Infrastructure\Controllers\ResetPasswordController",
             "/auth/logout" => "App\Auth\Infrastructure\Controllers\LogoutController",
-            "/auth/logout-all-sessions" => "App\Auth\Infrastructure\Controllers\LogoutAllController"
+            "/auth/logout-all-sessions" => "App\Auth\Infrastructure\Controllers\LogoutAllController",
+            "/auth/resend-confirm-account" => "App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController"
         ]
     ];
 
