@@ -44,7 +44,7 @@ async function handleConfirmAccount() {
     if (!allParams.confirmation) {
         spinner.classList.add("hidden");
         confirmMsg.innerText = "No se encontró el token de confirmación.";
-        return;
+        redirectTo("/Auth/RecoverAccount/recover.html");
     }
     const response = await fetchAPI(`/auth/verify-reset-token?confirmation=${allParams.confirmation}`, null, 'GET');
 
@@ -63,6 +63,8 @@ async function handleConfirmAccount() {
                 form.classList.remove("hidden");
             }, 2500);
             handleSubmit(allParams.confirmation);
+        } else {
+            redirectTo("/Auth/RecoverAccount/recover.html");
         }
     } else {
         return;
@@ -107,4 +109,11 @@ function validateFormFields() {
         validateField(key, fieldObj);
     })
     isEquals(resetForm.rawPassword.element, resetForm.repeatRawPassword.element, "Las contraseñas deben ser iguales");
+}
+
+function redirectTo(path) {
+    setTimeout(() => {
+        window.location.replace(path);
+    }, 2500)
+    return;
 }

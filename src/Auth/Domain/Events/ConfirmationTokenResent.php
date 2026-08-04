@@ -2,25 +2,27 @@
 
 namespace App\Auth\Domain\Events;
 use App\Shared\Domain\Event\DomainEventInterface;
+use App\Auth\Domain\ValueObject\UserId;
 use App\Auth\Domain\ValueObject\TokenValue;
 use App\Auth\Domain\ValueObject\Email;
 use App\Auth\Domain\ValueObject\UserName;
 use App\Shared\Domain\ValueObject\UUIDv7;
 use DateTimeImmutable;
 
-final class ConfirmationTokenResent extends DomainEventInterface {
+final class ConfirmationTokenResent implements DomainEventInterface {
     private function __construct(
         private readonly string $eventId,
         private readonly DateTimeImmutable $occurredAt,
+        private readonly UserId $userRequestId,
         private readonly TokenValue $tokenValue,
         private readonly Email $email,
         private readonly UserName $userName,
     ) {}
 
-    public static function create(UserId $userId,Email $email,UserName $userName) : self {
+    public static function create(UserId $userId,Email $email,UserName $userName,TokenValue $tokenValue) : self {
         $eventId = UUIDv7::generate();
         $now = new DateTimeImmutable();
-        return new self($eventId->value(),$now,$userId,$email,$userName);
+        return new self($eventId->value(),$now,$userId,$tokenValue,$email,$userName);
     }
 
     public function eventId() : string {
@@ -31,8 +33,12 @@ final class ConfirmationTokenResent extends DomainEventInterface {
         return $this->occurredAt;
     }
 
+    public function userRequestId() : UserId {
+        return $this->userRequestId;
+    }
+
     public function tokenValue() : TokenValue {
-        return $this->userRegisteredId;
+        return $this->tokenValue;
     }
 
     public function email() : Email {

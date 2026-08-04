@@ -21,28 +21,30 @@ final class ResendConfirmationAccountToken {
         private readonly EventDispatcherInterface $eventDispatcher
     ){}
 
-    public function execute(string $strEmail) {
-        $email = new Email($strEmail);
-        $userExists = $userRepository.findByEmail($email);
+    public function execute(string $strEmail):void {
+        $email = Email::create($strEmail);
+        $userExists = $this->userRepository->findByEmail($email);
         if(!$userExists) return;
+        if($userExists->isVerified()) return;
         $verificationToken = VerificationToken::create(
             TokenType::EmailConfirmation,
             $userExists->userId()
         );
 
         try {
-            $transactionManager->begin();
+            $this->transactionManager->begin();
             $this->verificationTokenRepository->deleteAllByTokenType($userExists->userId(),TokenType::EmailConfirmation);
             $this->verificationTokenRepository->save($verificationToken);
-            $transactionManager->commit();
+            $this->transactionManager->commit();
         } catch (\Throwable $th) {
-            $transactionManager->rollback();
+            $this->transactionManager->rollback();
             throw $th;
         }
         $event = ConfirmationTokenResent::create(
             $userExists->userId(),
             $email,
-            $userExists->userName()
+            $userExists->userName(),
+            $verificationToken->tokenValue()
         );
         $this->eventDispatcher->dispatch($event);
     }

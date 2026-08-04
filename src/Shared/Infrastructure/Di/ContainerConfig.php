@@ -42,6 +42,10 @@ final class ContainerConfig {
 
             "App\Auth\Infrastructure\Controllers\ResetPasswordController" => "App\Auth\Infrastructure\Controllers\ResetPasswordController",
             "App\Auth\Application\UseCase\ResetPassword" => "App\Auth\Application\UseCase\ResetPassword",
+
+            "App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController" => "App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController",
+            "App\Auth\Application\UseCase\ResendConfirmationAccountToken" => "App\Auth\Application\UseCase\ResendConfirmationAccountToken",
+            "App\Auth\Infrastructure\EventListener\ResendEmailConfirmationToken" => "App\Auth\Infrastructure\EventListener\ResendEmailConfirmationToken",
             
             "App\Shared\Application\Port\CookieManagerInterface" => "App\Shared\Infrastructure\Http\CookieManager",
             "App\Auth\Domain\Repository\RefreshTokenRepositoryInterface" => "App\Auth\Infrastructure\Persistence\RefreshTokenRepository",
