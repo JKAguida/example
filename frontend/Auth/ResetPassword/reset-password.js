@@ -89,6 +89,9 @@ function handleSubmit(token) {
         }
         if (!response.ok && response.status) {
             toast(null, "error", response.data.msg);
+            if(/El token ya expiró || El token ha expirado/i.test(response.data.msg)){
+                redirectTo("/Auth/RecoverAccount/recover.html");
+            }
         }
 
         if (response.ok && response.status) {
@@ -111,9 +114,9 @@ function validateFormFields() {
     isEquals(resetForm.rawPassword.element, resetForm.repeatRawPassword.element, "Las contraseñas deben ser iguales");
 }
 
-function redirectTo(path) {
+function redirectTo(path,timeout) {
     setTimeout(() => {
         window.location.replace(path);
-    }, 2500)
+    }, timeout||4000)
     return;
 }
