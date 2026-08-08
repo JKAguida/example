@@ -30,48 +30,45 @@ function init() {
             msgs: ["Este campo no puede ir vacío"]
         }
     }
-    handleConfirmAccount();
+    const { confirmarion } = extractParamsFromURL();
+    const isValid = validateTokenAndShowResult(confirmation);
+    if (isValid){
+        setupFormSubmit(confirmation);
+    }
 }
 
-async function handleConfirmAccount() {
+function extractParamsFromURL() {
     const params = new URLSearchParams(window.location.search);
     const allParams = Object.fromEntries(params);
-
-
     console.log("[DEBUG_PARAMS]: ", params);
     console.log("[DEBUG__ALL_PARAMS]: ", allParams);
+    return allParams;
+}
 
-    if (!allParams.confirmation) {
+async function validateTokenAndShowResult(confirmation) {
+    if (!confirmation) {
         spinner.classList.add("hidden");
         confirmMsg.innerText = "No se encontró el token de confirmación.";
         redirectTo("/Auth/RecoverAccount/recover.html");
     }
-    const response = await fetchAPI(`/auth/verify-reset-token?confirmation=${allParams.confirmation}`, null, 'GET');
+    
+    const response = await fetchAPI(`/auth/verify-reset-token?confirmation=${confirmation}`, null, 'GET');
+    spinner.classList.add("hidden");
+    confirmMsg.innerText = response.data.msg || response.error;
 
-    if (!response.ok && !response.status) {
-        spinner.classList.add("hidden");
-        confirmMsg.innerText = response.error;
-        return;
-    }
-
-    if (response) {
-        spinner.classList.add("hidden");
-        confirmMsg.innerText = response.data.msg;
-        if (response.ok) {
-            setTimeout(() => {
-                confirmContainer.classList.add("hidden");
-                form.classList.remove("hidden");
-            }, 2500);
-            handleSubmit(allParams.confirmation);
-        } else {
-            redirectTo("/Auth/RecoverAccount/recover.html");
-        }
+    if (response.ok) {
+        setTimeout(() => {
+            confirmContainer.classList.add("hidden");
+            form.classList.remove("hidden");
+        }, 2500);
+        return true;
     } else {
-        return;
+        redirectTo("/Auth/RecoverAccount/recover.html");
+        return false
     }
 }
 
-function handleSubmit(token) {
+function setupFormSubmit(token) {
     let btnSubmit = window.document.getElementById("reset-pwd-btn");
     btnSubmit.addEventListener("click", async (ev) => {
         ev.preventDefault();
@@ -84,12 +81,12 @@ function handleSubmit(token) {
         form.classList.add("hidden");
         console.log("[DEBUG_DATA_TO_SEND]: ", dataToSend);
         const response = await fetchAPI(`/auth/reset-password?confirmation=${token}`, dataToSend, "POST");
-        if (!response.ok && !response.status) {
-            toast(null, "error", response.error);
+        if (!response.ok) {
+            toast(null, "error", response.data.msg || response.error);
         }
         if (!response.ok && response.status) {
             toast(null, "error", response.data.msg);
-            if(/El token ya expiró || El token ha expirado/i.test(response.data.msg)){
+            if(/El token ya expiró|El token ha expirado/i.test(response.data.msg)){
                 redirectTo("/Auth/RecoverAccount/recover.html");
             }
         }
