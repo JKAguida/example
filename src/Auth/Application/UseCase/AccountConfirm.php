@@ -10,7 +10,7 @@ use App\Auth\Domain\Repository\UserRepositoryInterface;
 
 use App\Shared\Application\Port\TransactionManagerInterface;
 use App\Auth\Domain\Exception\InvalidTokenException;
-use App\Auth\Domain\Exception\UserNotFoundException;
+use App\Shared\Domain\Exception\CorruptedPersistedDataException;
 
 final class AccountConfirm {
     
@@ -28,13 +28,10 @@ final class AccountConfirm {
         $tokenExist = $this->verificationTokenRepository->findByTokenValue($tknValueObj);
         if(!$tokenExist) throw new InvalidTokenException("El token no existe");
         
-        if($tokenExist->isExpired()) throw new InvalidTokenException("El token ya expiró, para validar la cuenta se deberá solicitar uno nuevo.");
+        $tokenExist->ensureTokenValid($tokenType);
 
-        if( $tokenExist->tokenType() !== $tokenType ) throw new InvalidTokenException();
-
-        
         $userExist = $this->userRepository->findById($tokenExist->userId());
-        if (!$userExist) throw new UserNotFoundException("Usuario no encontrado");
+        if (!$userExist) throw new CorruptedPersistedDataException("Usuario no encontrado: ".$tokenExist->userId()->value());
        
         $userExist->confirmAccount();
 

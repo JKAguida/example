@@ -7,6 +7,8 @@ use App\Auth\Domain\ValueObject\TokenValue;
 use App\Auth\Domain\ValueObject\TokenExpiration;
 use App\Auth\Domain\ValueObject\TokenType;
 use App\Auth\Domain\ValueObject\UserId;
+use App\Auth\Domain\Exception\InvalidTokenTypeException;
+use App\Auth\Domain\Exception\TokenExpiredException;
 
 final class VerificationToken {
     private function __construct(
@@ -49,8 +51,9 @@ final class VerificationToken {
         );
     }
 
-    public function isExpired() : bool {
-        return $this->tokenExpiration->isExpired();
+    public function ensureTokenValid(TokenType $type) : void {
+        if($this->tokenType() !== $type) throw new InvalidTokenTypeException("El tipo de token recibido no es correcto, se esperaba: ".$type->value." y llego un: ".$this->tokenType()->value);
+        if($this->tokenExpiration()->isExpired()) throw new TokenExpiredException();
     }
 
     public function tokenId(): TokenId {return $this->tokenId; }

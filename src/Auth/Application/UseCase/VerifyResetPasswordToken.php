@@ -22,9 +22,6 @@ final class VerifyResetPasswordToken {
 
         $tokenExist = $this->verificationTokenRepository->findByTokenValue($tknValueObj);
         if(!$tokenExist) throw new InvalidTokenException("El token no existe");
-        
-        if($tokenExist->isExpired()) throw new InvalidTokenException("El token ya expiró, para continuar con el cambio de contraseña deberá solicitar uno nuevo.");
-
-        if( $tokenExist->tokenType() !== $tokenType ) throw new InvalidTokenException();
+        $tokenExist->ensureTokenValid($tokenType);
     }
 }

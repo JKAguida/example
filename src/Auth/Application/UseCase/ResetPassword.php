@@ -11,6 +11,7 @@ use App\Auth\Domain\ValueObject\TokenValue;
 use App\Auth\Domain\ValueObject\TokenType;
 use App\Auth\Domain\ValueObject\RawPassword;
 use App\Auth\Domain\Exception\InvalidTokenException;
+use App\Shared\Domain\Exception\CorruptedPersistedDataException;
 
 final class ResetPassword {
     public function __construct(
@@ -27,13 +28,12 @@ final class ResetPassword {
         $verificationToken = $this->verificationTokenRepository->findByTokenValue($tokenValue);
         
         if(!$verificationToken) throw new InvalidTokenException();
-        if( $verificationToken->tokenType() !== $tokenType ) throw new InvalidTokenException();
-        if( $verificationToken->isExpired() ) throw new InvalidTokenException("El token ha expirado");
+        $verificationToken->ensureTokenValid($tokenType);
         
         $userId = $verificationToken->userId();
         $rawPassword = RawPassword::create($nwRawPassword);
         $user = $this->userRepository->findById($userId);
-        if(!$user) throw new InvalidTokenException();
+        if(!$user) throw new CorruptedPersistedDataException("El ID del usuario obtenido, no es válido. ".$userId->value());
         $nwPasswordHashed = $this->passwordHasher->hash($rawPassword);
         $user->changePassword($nwPasswordHashed);
 

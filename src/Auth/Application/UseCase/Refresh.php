@@ -4,6 +4,7 @@ namespace App\Auth\Application\UseCase;
 
 use App\Auth\Domain\ValueObject\TokenValue;
 use App\Auth\Domain\Exception\InvalidTokenException;
+use App\Auth\Domain\Exception\TokenExpiredException;
 use App\Auth\Domain\Entity\RefreshToken;
 use App\Auth\Application\Security\TokenGeneratorInterface;
 use App\Auth\Domain\Repository\RefreshTokenRepositoryInterface;
@@ -23,7 +24,7 @@ final class Refresh {
     public function refresh(string $strRefresTokenValue,string $userAgent): LoginResponseDTO {
         $oldRefreshToken = $this->refreshTokenRepository->findByTokenValue(TokenValue::fromString($strRefresTokenValue));
         if(!$oldRefreshToken) throw new InvalidTokenException();
-        if($oldRefreshToken->isExpired()) throw new InvalidTokenException("El token ha expirado");
+        if($oldRefreshToken->isExpired()) throw new TokenExpiredException("El token ha expirado");
         
         $nwAccessToken = $this->tokenGenerator->generate($oldRefreshToken->userId());
         $nwRefreshToken = RefreshToken::generate($oldRefreshToken->userId(),$userAgent);
@@ -32,22 +33,22 @@ final class Refresh {
         try {
             $this->refreshTokenRepository->save($nwRefreshToken);
             $this->refreshTokenRepository->delete($oldRefreshToken->tokenId());
-            $this->cookieManager->set(
-                'refreshTokenJKApp',
-                $nwRefreshToken->tokenValue()->value(),
-                [
-                    "expires" => time() + (7*24*60*60),
-                    "httpOnly" => true,
-                    "secure" => true,
-                    "sameSite" => "Lax"
-                ]
-            );
             $this->transactionManager->commit();
         } catch (\Throwable $th) {
             $this->transactionManager->rollback();
             throw $th;
         }
 
+        $this->cookieManager->set(
+            'refreshTokenJKApp',
+            $nwRefreshToken->tokenValue()->value(),
+            [
+                "expires" => time() + (7*24*60*60),
+                "httpOnly" => true,
+                "secure" => true,
+                "sameSite" => "Lax"
+            ]
+        );
         return new LoginResponseDTO($nwAccessToken);
     }
 }
