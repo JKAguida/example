@@ -2,7 +2,7 @@
 namespace App\Shared\Domain\ValueObject;
 
 use Ramsey\Uuid\Uuid;
-use InvalidArgumentException;
+use App\Shared\Domain\Exception\CorruptedPersistedDataException;
 
 final class UUIDv7 {
     private readonly string $value;
@@ -17,7 +17,7 @@ final class UUIDv7 {
     }
 
     public static function fromString(string $value) : self  {
-        return Uuid::isValid($value) ? new self($value) : throw new InvalidArgumentException("El valor no es un UUID válido");
+        return Uuid::isValid($value) ? new self($value) : throw new CorruptedPersistedDataException("El valor no es un UUID válido");
     }
 
     public function value(): string {

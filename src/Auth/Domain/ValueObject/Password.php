@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Auth\Domain\ValueObject;
-use InvalidArgumentException;
+use App\Shared\Domain\Exception\CorruptedPersistedDataException;
 
 final class Password {
     private readonly string $passwordHashed;
@@ -11,7 +11,7 @@ final class Password {
     }
 
     public static function create(string $hash) : self {
-        return strlen($hash) > 0 ? new self($hash) : throw new InvalidArgumentException("El valor es obligatorio");
+        return strlen($hash) > 0 ? new self($hash) : throw new CorruptedPersistedDataException("El hash recibido no es correcto.");
     }
 
     public function value() : string {
