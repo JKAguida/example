@@ -13,6 +13,8 @@ use App\Auth\Domain\Exception\InvalidCredentialsException;
 use App\Auth\Domain\Exception\InvalidTokenException;
 use App\Auth\Domain\Exception\InvalidTokenTypeException;
 use App\Auth\Domain\Exception\TokenExpiredException;
+use App\Shared\Infrastructure\Http\Exception\InvalidPathException;
+
 
 final class HandlerExceptions {
     private array $code_map = [
@@ -55,6 +57,16 @@ final class HandlerExceptions {
             'status_code'=> 401,
             'code' => 'TOKEN_EXPIRED',
             'msg' => 'El token ha expirado, solicite uno nuevo.'
+        ],
+        InvalidPathException::class => [
+            'status_code'=> 404,
+            'code' => 'NOT_FOUND',
+            'msg' => 'El recurso solicitado no existe.'
+        ],
+        IncompletePayloadException::class => [
+            'status_code'=> 400,
+            'code' => 'INCOMPLETE_PAYLOAD',
+            'msg' => 'No se han recibido todos los datos requeridos'
         ],
     ];
 
