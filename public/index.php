@@ -5,9 +5,8 @@ require_once __DIR__.'/../vendor/autoload.php';
 use App\Shared\Infrastructure\Bootstrap\EnvironmentLoader;
 use App\Shared\Infrastructure\Di\ContainerConfig;
 use App\Shared\Infrastructure\Router\Router;
-use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Middleware\CORSMiddleware;
-
+use App\Shared\Infrastructure\Http\HandlerExceptions;
 
 EnvironmentLoader::load();
 $container = ContainerConfig::create();
@@ -23,16 +22,12 @@ $request_method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'];
 $path_clean = explode('?',$path)[0];
 
-$controller = Router::resolve($request_method,$path_clean);
-
-if(!$controller){
-    $response = new Response(
-        msg: "Recurso no encontrado",
-        status: "error"
-    );
-    $response->send(404);
-} else {
+try {
+    $controller = Router::resolve($request_method,$path_clean);
     $instance = $container->get($controller);
     $instance->execute();
+} catch (\Throwable $th) {
+    $handler = new HandlerExceptions();
+    $response = $handler->handle($th,$request_method,$path_clean);
+    $response->send();
 }
-

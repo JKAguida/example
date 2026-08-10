@@ -11,6 +11,7 @@ use App\Auth\Domain\Service\PasswordHashInterface;
 use App\Auth\Application\Security\TokenGeneratorInterface;
 use App\Auth\Domain\Repository\RefreshTokenRepositoryInterface;
 use App\Auth\Domain\Exception\InvalidCredentialsException;
+use App\Auth\Domain\Exception\AccountNotVerifiedException;
 use App\Auth\Domain\Entity\RefreshToken;
 use App\Shared\Application\Port\TransactionManagerInterface;
 use App\Shared\Application\Port\CookieManagerInterface;
@@ -31,7 +32,7 @@ final class Login {
         $userExist = $this->userRepository->findByEmail(Email::create($data->email()));
         if(!$userExist) throw new InvalidCredentialsException();
         // Validar la confirmacion de la cuenta
-        if(!$userExist->isVerified()) throw new InvalidCredentialsException("La cuenta no ha sido confirmada");
+        if(!$userExist->isVerified()) throw new AccountNotVerifiedException("La cuenta no ha sido confirmada");
         // Validar la contraseña
         if( !$this->passwordHash->verify(RawPassword::fromString($data->rawPassword()),$userExist->password()) ) throw new InvalidCredentialsException();
         
@@ -46,22 +47,12 @@ final class Login {
             );
             // Persistir el refresh token
             $this->refreshTokenRepository->save($refreshToken);
-            $this->cookieManager->set(
-                'refreshTokenJKApp',
-                $refreshToken->tokenValue()->value(),
-                [
-                    "expires" => time() + (7*24*60*60),
-                    "httpOnly" => true,
-                    "secure" => true,
-                    "sameSite" => "Lax"
-                ]
-            );
             $this->transactionManager->commit();
         } catch (\Throwable $th) {
             $this->transactionManager->rollback();
             throw $th;
         }
-        
+            
         if( $this->passwordHash->needsRehash($userExist->password()) ){
             $nwHash = $this->passwordHash->hash(RawPassword::fromString($data->rawPassword()));
             $userExist->changePassword($nwHash);
@@ -72,6 +63,17 @@ final class Login {
             }
         };
 
+        $this->cookieManager->set(
+            'refreshTokenJKApp',
+            $refreshToken->tokenValue()->value(),
+            [
+                "expires" => time() + (7*24*60*60),
+                "httpOnly" => true,
+                "secure" => true,
+                "sameSite" => "Lax"
+            ]
+        );
+        
         // Retornar el DTO
         return new LoginResponseDTO($accessToken);
     }

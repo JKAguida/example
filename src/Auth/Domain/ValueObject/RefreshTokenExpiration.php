@@ -3,7 +3,8 @@
 
 namespace App\Auth\Domain\ValueObject;
 use DateTimeImmutable;
-use InvalidArgumentException;
+use App\Shared\Domain\Exception\CorruptedPersistedDataException;
+
 
 final class RefreshTokenExpiration {
     private readonly DateTimeImmutable $expiration;
@@ -22,7 +23,10 @@ final class RefreshTokenExpiration {
         try {
             return new self(new DateTimeImmutable($strDateTime));
         } catch (\Exception $e) {
-            throw new InvalidArgumentException("La fecha de la base de datos es inválida: " . $strDateTime);
+            throw new CorruptedPersistedDataException(
+                message:"La fecha de la base de datos es inválida: " . $strDateTime,
+                previous:$e
+            );
         }
     }
 

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Auth\Domain\ValueObject;
-use InvalidArgumentException;
+use App\Shared\Domain\Exception\InvalidInputException;
 
 final class LastName {
     private readonly string $value;
@@ -12,9 +12,9 @@ final class LastName {
 
     public static function create(string $txt) : self {
         if(!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/',$txt)){
-            throw new InvalidArgumentException("Solo se admiten letras");
+            throw new InvalidInputException("Solo se admiten letras");
         } else {
-            return strlen($txt) < 3 || strlen($txt) > 32 ? throw new InvalidArgumentException("Se debe tener al menos 3 letras y un máximo de 32") : new self($txt);
+            return strlen($txt) < 3 || strlen($txt) > 32 ? throw new InvalidInputException("Se debe tener al menos 3 letras y un máximo de 32") : new self($txt);
         }
     }
 

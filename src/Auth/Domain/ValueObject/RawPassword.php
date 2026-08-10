@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Auth\Domain\ValueObject;
-use InvalidArgumentException;
+use App\Shared\Domain\Exception\InvalidInputException;
+
 
 final class RawPassword {
     private readonly string $rawPass;
@@ -11,7 +12,7 @@ final class RawPassword {
     }
 
     public static function create(string $passTxt) : self {
-        return strlen($passTxt) < 8 ? throw new InvalidArgumentException("La longitud de la contraseña debe ser mayor o igual a 8 caracteres") : new self($passTxt);
+        return strlen($passTxt) < 8 ? throw new InvalidInputException("La longitud de la contraseña debe ser mayor o igual a 8 caracteres") : new self($passTxt);
     }
 
     public static function fromString(string $pass): self {
