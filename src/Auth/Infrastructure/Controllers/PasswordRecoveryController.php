@@ -16,13 +16,9 @@ final class PasswordRecoveryController {
             $response = new Response(
                 msg: "Se ha enviado un email para continuar el proceso"
             );
-            $response->send(200);
+            $response->send();
         } catch (\Throwable $th) {
-            $response = new Response(
-                msg: $th->getMessage(),
-                status: "error"
-            );
-            $response->send(500);
+            throw $th;
         }
     }
 }

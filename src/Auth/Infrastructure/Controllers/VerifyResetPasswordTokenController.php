@@ -17,21 +17,9 @@ final class VerifyResetPasswordTokenController {
             $response = new Response(
                 "Token válido, puede continuar con el cambio de contraseña."
             );
-            $response->send(200);
+            $response->send();
         } catch (\Throwable $th) {
-            if($th instanceof InvalidTokenException ){
-                $response = new Response(
-                    msg:$th->getMessage(),
-                    status:'error'
-                );
-                $response->send(404);
-            }else{
-                $response = new Response(
-                    msg:$th->getMessage(),
-                    status:'error'
-                );
-                $response->send(500);
-            }
+            throw $th;
         }
     }
 }

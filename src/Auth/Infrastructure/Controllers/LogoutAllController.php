@@ -16,13 +16,9 @@ final class LogoutAllController {
             $response = new Response(
                 msg: "Todas las sesiones han sido cerradas"
             );
-            $response->send(200);
+            $response->send();
         } catch (\Throwable $th) {
-            $response = new Response(
-                msg: $th->getMessage(),
-                status:"error"
-            );
-            $response->send(500);
+            throw $th;
         }
     }
 }

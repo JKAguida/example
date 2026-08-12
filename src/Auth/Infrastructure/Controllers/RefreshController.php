@@ -23,17 +23,9 @@ final class RefreshController {
                     "accessToken" => $loginResponse->accessToken()
                 ]
             );
-            $response->send(200);
+            $response->send();
         } catch (\Throwable $th) {
-            $response = new Response(
-                msg: $th->getMessage(),
-                status: "error"
-            );
-            if($th instanceof InvalidTokenException){
-                $response->send(401);
-            }else{
-                $response->send(500);
-            }
+            throw $th;
         }
     }
 }

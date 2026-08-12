@@ -23,21 +23,9 @@ final class ResetPasswordController {
             $response = new Response(
                 msg: "Contraseña actualizada",
             );
-            $response->send(200);
+            $response->send();
         } catch (\Throwable $th) {
-            if($th instanceof InvalidTokenException){
-                $response = new Response(
-                    msg: $th->getMessage(),
-                    status: "error"
-                );
-                $response->send(401);
-            }else{
-                $response = new Response(
-                    msg: $th->getMessage(),
-                    status: "error"
-                );
-                $response->send(500);
-            }
+            throw $th;
         }
     }
 }

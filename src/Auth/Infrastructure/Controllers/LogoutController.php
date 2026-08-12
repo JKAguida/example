@@ -18,16 +18,9 @@ final class LogoutController {
             $response = new Response(
                 msg: "Sesión cerrada."
             );
-            $response->send(200);
+            $response->send();
         } catch (\Throwable $th) {
-            $response = new Response(
-                msg: $th->getMessage()
-            );
-            if($th instanceof InvalidArgumentException){
-                $response->send(401);
-            }else{
-                $response->send(500);
-            }
+            throw $th;
         }
     }
 }

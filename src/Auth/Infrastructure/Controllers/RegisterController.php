@@ -25,23 +25,12 @@ final class RegisterController{
         try {
             $this->registerUser->register($registerUserRequestDTO);
             $response = new Response(
-                msg: 'Usuario registrado, confirme su cuenta vía email.'
+                msg: 'Usuario registrado, confirme su cuenta vía email.',
+                status_code:201
             );
-            $response->send(201);
+            $response->send();
         } catch (\Throwable $th) {
-            if($th instanceof EmailAlreadyExistsException){
-                $response = new Response(
-                    msg: $th->getMessage(),
-                    status: 'error'
-                );
-                $response->send(409);
-            }else{
-                $response = new Response(
-                    msg: $th->getMessage(),
-                    status: 'error'
-                );
-                $response->send(500);
-            }
+            throw $th;
         }
     }
 }

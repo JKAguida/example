@@ -18,21 +18,9 @@ final class AccountConfirmController {
             $response = new Response(
                 "Cuenta confirmada, ya puede iniciar sesión"
             );
-            $response->send(200);
+            $response->send();
         } catch (\Throwable $th) {
-            if($th instanceof UserNotFoundException || $th instanceof InvalidTokenException ){
-                $response = new Response(
-                    msg:$th->getMessage(),
-                    status:'error'
-                );
-                $response->send(404);
-            }else{
-                $response = new Response(
-                    msg:$th->getMessage(),
-                    status:'error'
-                );
-                $response->send(500);
-            }
+            throw $th;
         }
     }
 }
