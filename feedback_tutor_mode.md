@@ -62,3 +62,41 @@ This pattern works because it separates **logical thinking** (which user can do)
 - ✓ Pensó en diseño antes de escribir código (centrado, responsive)
 - **Aprendizaje meta:** El usuario trasladó patrones de backend al frontend sin ser guiado — indica comprensión profunda
 - **Patrón:** Pensamiento arquitectónico antes de implementación (igual que en backend)
+
+### Sesión 2026-08-12 (Backend fixes + Frontend auth completo)
+
+**Backend Refactoring:**
+- ✓ Identificó problema crítico en Response::send() — parámetros innecesarios
+- ✓ Simplificó controllers: removió try-catch innecesarios, dejó excepciones subir
+- ✓ Implementó HandlerExceptions centralizado en index.php
+- ✓ Arregló cookie handling en Login/Refresh: try-catch con rollback si setcookie falla
+- ✓ Entendió transacciones: BD vs flujo de operaciones dependientes
+
+**Frontend Authentication (Completo):**
+- ✓ Register + Email confirmation + Login + Logout + Password recovery + Reset
+- ✓ Guardó accessToken en sessionStorage (temporal, más seguro que localStorage)
+- ✓ Envía Authorization header en todas las requests
+- ✓ Removió todos los console.log
+- ✓ Refactorizó reset-password.js: separó responsabilidades (extract → validate → setup)
+- ✓ Limpió código, arregló typos, agregó timeouts en redirects
+
+**Decisiones Arquitectónicas:**
+- ✓ Eligió Web Components sobre Include Pattern para transicionar a frameworks
+- ✓ Creó logout.js como módulo reutilizable (no solo en navbar)
+- ✓ Manejo de errores en logout: muestra toast, permite reintentar
+- ✓ Pensó en accessToken vs refreshToken: sessionStorage vs HttpOnly cookie
+
+**Aprendizajes clave:**
+1. **Error handling estratégico** — no todos los errores se manejan igual (logout ≠ register)
+2. **Transacciones no solo BD** — flujos de operaciones dependientes necesitan rollback
+3. **Web Components** — concepto transferible a React/Vue (componentes, ciclo de vida, encapsulación)
+4. **Separación de responsabilidades** — módulos vs UI (logout.js no toca DOM, navbar lo importa)
+5. **Seguridad en capas** — accessToken + refreshToken + HttpOnly + Authorization header
+6. **Usuario cuestiona decisiones** — pregunta "¿por qué?" antes de implementar (pensamiento crítico)
+
+**Patrón validado:**
+El usuario sigue tutor mode correctamente:
+- No pide código, solo guía
+- Cuestiona arquitectura ("¿Web Components o Include?")
+- Verifica lógica antes de implementar
+- Aprende conceptos transferibles, no solo sintaxis
