@@ -63,16 +63,21 @@ final class Login {
             }
         };
 
-        $this->cookieManager->set(
-            'refreshTokenJKApp',
-            $refreshToken->tokenValue()->value(),
-            [
-                "expires" => time() + (7*24*60*60),
-                "httpOnly" => true,
-                "secure" => true,
-                "sameSite" => "Lax"
-            ]
-        );
+        try {
+            $this->cookieManager->set(
+                'refreshTokenJKApp',
+                $refreshToken->tokenValue()->value(),
+                [
+                    "expires" => time() + (7*24*60*60),
+                    "httpOnly" => true,
+                    "secure" => true,
+                    "sameSite" => "Lax"
+                ]
+            );  
+        } catch (\Throwable $th) {
+            $this->refreshTokenRepository->delete($refreshToken->tokenId());
+            throw $th;
+        }
         
         // Retornar el DTO
         return new LoginResponseDTO($accessToken);

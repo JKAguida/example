@@ -39,16 +39,21 @@ final class Refresh {
             throw $th;
         }
 
-        $this->cookieManager->set(
-            'refreshTokenJKApp',
-            $nwRefreshToken->tokenValue()->value(),
-            [
-                "expires" => time() + (7*24*60*60),
-                "httpOnly" => true,
-                "secure" => true,
-                "sameSite" => "Lax"
-            ]
-        );
+        try {
+            $this->cookieManager->set(
+                'refreshTokenJKApp',
+                $nwRefreshToken->tokenValue()->value(),
+                [
+                    "expires" => time() + (7*24*60*60),
+                    "httpOnly" => true,
+                    "secure" => true,
+                    "sameSite" => "Lax"
+                ]
+            );  
+        } catch (\Throwable $th) {
+            $this->refreshTokenRepository->delete($nwRefreshToken->tokenId());
+            throw $th;
+        }
         return new LoginResponseDTO($nwAccessToken);
     }
 }
