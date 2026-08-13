@@ -32,20 +32,23 @@ function handleSubmit() {
         const dataToSend = {
             email: resendForm.email.element.value
         }
-        console.log("[DEBUG_DATA_TO_SEND]: ", dataToSend);
+        //console.log("[DEBUG_DATA_TO_SEND]: ", dataToSend);
         spinner.classList.remove("hidden");
         form.classList.add("hidden");
         const response = await fetchAPI("/auth/resend-confirm-account", dataToSend, "POST");
+        //console.log(response);
         if (!response.ok && !response.status) {
             toast(null, "error", response.error);
         }
-        if (!response.ok && response.status) {
+        if (!response.ok && response.status!==500) {
             toast(null, "error", response.data.msg);
         }
         if (response.ok) {
             toast(null, "success", response.data.msg);
             form.reset();
-            window.location.replace("/Auth/Login/login.html");
+            setTimeout(() => {
+                window.location.replace("/Auth/Login/login.html");
+            }, 3000);
         }
         spinner.classList.add("hidden");
         form.classList.remove("hidden");

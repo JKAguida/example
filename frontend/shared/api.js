@@ -1,7 +1,12 @@
+export const ACCESS_TOKEN_KEY = "accessTokenJkApp";
 export async function fetchAPI(path, data, method) {
+    const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);
     const config = {
         method: method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+        },
         credentials: 'include'
     }
 
@@ -12,6 +17,7 @@ export async function fetchAPI(path, data, method) {
     try {
         const uri = 'http://localhost:8000'+path
         const response = await fetch(uri,config);
+        //console.log("[DEBUG - API]: ",response);
         return {
             ok:response.ok,
             status:response.status,

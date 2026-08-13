@@ -62,12 +62,12 @@ function handleSubmit() {
             email: userForm.email.element.value,
             rawPassword: userForm.rawPassword.element.value
         }
-        console.log("[DEBUG_DATA]: Data to send... " + JSON.stringify(dataToSend));
+        //console.log("[DEBUG_DATA]: Data to send... " + JSON.stringify(dataToSend));
         spinner.classList.remove('hidden');
         form.classList.add('hidden');
 
         const response = await fetchAPI('/auth/register', dataToSend, 'POST');
-        console.log(response);
+        //console.log(response);
         if (!response.ok && !response.status) {
             toast(3000, 'error', response.error);
         }

@@ -1,5 +1,5 @@
 import { validations, validateField } from "../../shared/form-validations.js";
-import { fetchAPI } from "../../shared/api.js";
+import { fetchAPI, ACCESS_TOKEN_KEY } from "../../shared/api.js";
 import { toast } from "../../shared/toast.js";
 
 window.document.addEventListener('DOMContentLoaded', init);
@@ -40,7 +40,7 @@ function handleSubmit() {
             email: loginForm.email.element.value,
             rawPassword: loginForm.rawPassword.element.value
         }
-        console.log("[DEBUG_DATA]: Data to send..." + JSON.stringify(dataToSend));
+        //console.log("[DEBUG_DATA]: Data to send..." + JSON.stringify(dataToSend));
         form.classList.add('hidden');
         spinner.classList.remove('hidden');
 
@@ -60,7 +60,8 @@ function handleSubmit() {
         }
         form.classList.remove('hidden');
         spinner.classList.add('hidden');
-        console.log(response);
+        //console.log(response);
+        window.sessionStorage.setItem(ACCESS_TOKEN_KEY, response.data.data.accessToken);
     })
 }
 

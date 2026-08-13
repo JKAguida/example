@@ -30,9 +30,9 @@ function init() {
             msgs: ["Este campo no puede ir vacío"]
         }
     }
-    const { confirmarion } = extractParamsFromURL();
+    const { confirmation } = extractParamsFromURL();
     const isValid = validateTokenAndShowResult(confirmation);
-    if (isValid){
+    if (isValid) {
         setupFormSubmit(confirmation);
     }
 }
@@ -40,8 +40,8 @@ function init() {
 function extractParamsFromURL() {
     const params = new URLSearchParams(window.location.search);
     const allParams = Object.fromEntries(params);
-    console.log("[DEBUG_PARAMS]: ", params);
-    console.log("[DEBUG__ALL_PARAMS]: ", allParams);
+    //console.log("[DEBUG_PARAMS]: ", params);
+    //console.log("[DEBUG__ALL_PARAMS]: ", allParams);
     return allParams;
 }
 
@@ -51,7 +51,7 @@ async function validateTokenAndShowResult(confirmation) {
         confirmMsg.innerText = "No se encontró el token de confirmación.";
         redirectTo("/Auth/RecoverAccount/recover.html");
     }
-    
+
     const response = await fetchAPI(`/auth/verify-reset-token?confirmation=${confirmation}`, null, 'GET');
     spinner.classList.add("hidden");
     confirmMsg.innerText = response.data.msg || response.error;
@@ -79,15 +79,17 @@ function setupFormSubmit(token) {
         }
         spinner.classList.remove("hidden");
         form.classList.add("hidden");
-        console.log("[DEBUG_DATA_TO_SEND]: ", dataToSend);
+        //console.log("[DEBUG_DATA_TO_SEND]: ", dataToSend);
         const response = await fetchAPI(`/auth/reset-password?confirmation=${token}`, dataToSend, "POST");
         if (!response.ok) {
             toast(null, "error", response.data.msg || response.error);
         }
         if (!response.ok && response.status) {
             toast(null, "error", response.data.msg);
-            if(/El token ya expiró|El token ha expirado/i.test(response.data.msg)){
-                redirectTo("/Auth/RecoverAccount/recover.html");
+            if (response.status === 401) {
+                setTimeout(() => {
+                    redirectTo("/Auth/RecoverAccount/recover.html");
+                }, 3000);
             }
         }
 
@@ -111,9 +113,9 @@ function validateFormFields() {
     isEquals(resetForm.rawPassword.element, resetForm.repeatRawPassword.element, "Las contraseñas deben ser iguales");
 }
 
-function redirectTo(path,timeout) {
+function redirectTo(path, timeout) {
     setTimeout(() => {
         window.location.replace(path);
-    }, timeout||4000)
+    }, timeout || 4000)
     return;
 }

@@ -13,8 +13,8 @@ async function handleConfirmAccount() {
     const params = new URLSearchParams(window.location.search);
     const allParams = Object.fromEntries(params);
 
-    console.log("[DEBUG_PARAMS]: ", params);
-    console.log("[DEBUG__ALL_PARAMS]: ", allParams);
+    //console.log("[DEBUG_PARAMS]: ", params);
+    //console.log("[DEBUG__ALL_PARAMS]: ", allParams);
 
     if (!allParams.confirmation) {
         spinner.remove();
@@ -36,7 +36,7 @@ async function handleConfirmAccount() {
             setTimeout(() => {
                 window.location.replace("/Auth/Login/login.html");
             }, 4000);
-        } else if (!response.ok && /El token ya expiró/i.test(response.data.msg)) {
+        } else if (!response.ok && response.status === 401) {
             setTimeout(() => {
                 window.location.replace("/Auth/ResendConfirmAccountToken/resendConfirmAccountToken.html");
             }, 4000);

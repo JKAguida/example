@@ -32,7 +32,7 @@ function handleSubmit() {
         const dataToSend = {
             email: recoverForm.email.element.value
         }
-        console.log("[DEBUG_DATA_TO_SEND]: ", dataToSend);
+        //console.log("[DEBUG_DATA_TO_SEND]: ", dataToSend);
         spinner.classList.remove("hidden");
         form.classList.add("hidden");
         const response = await fetchAPI("/auth/request-new-password",dataToSend,"POST");
