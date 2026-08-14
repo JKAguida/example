@@ -11,9 +11,7 @@ final class RefreshController {
     ) {}
 
     public function execute():void {
-        $data = json_decode(file_get_contents('php://input'),true);
         $loginResponse = $this->refresh->refresh(
-            $data['strRefreshTokenValue'],
             $_SERVER['HTTP_USER_AGENT']
         );
         $response = new Response(
