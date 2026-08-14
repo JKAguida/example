@@ -11,7 +11,7 @@ let confirmMsg = null;
 let form = null;
 let resetForm = {};
 
-function init() {
+async function init() {
     console.log("[DEBUG]: reset-password loaded.");
     spinner = window.document.getElementById('spinner');
     confirmContainer = window.document.getElementById('confirm-container');
@@ -31,7 +31,7 @@ function init() {
         }
     }
     const { confirmation } = extractParamsFromURL();
-    const isValid = validateTokenAndShowResult(confirmation);
+    const isValid = await validateTokenAndShowResult(confirmation);
     if (isValid) {
         setupFormSubmit(confirmation);
     }
@@ -50,11 +50,12 @@ async function validateTokenAndShowResult(confirmation) {
         spinner.classList.add("hidden");
         confirmMsg.innerText = "No se encontró el token de confirmación.";
         redirectTo("/Auth/RecoverAccount/recover.html");
+        return false;
     }
 
     const response = await fetchAPI(`/auth/verify-reset-token?confirmation=${confirmation}`, null, 'GET');
     spinner.classList.add("hidden");
-    confirmMsg.innerText = response.data.msg || response.error;
+    confirmMsg.innerText = response.data?.msg || response.error;
 
     if (response.ok) {
         setTimeout(() => {
@@ -82,10 +83,9 @@ function setupFormSubmit(token) {
         //console.log("[DEBUG_DATA_TO_SEND]: ", dataToSend);
         const response = await fetchAPI(`/auth/reset-password?confirmation=${token}`, dataToSend, "POST");
         if (!response.ok) {
-            toast(null, "error", response.data.msg || response.error);
+            toast(null, "error", response.data?.msg || response.error);
         }
         if (!response.ok && response.status) {
-            toast(null, "error", response.data.msg);
             if (response.status === 401) {
                 setTimeout(() => {
                     redirectTo("/Auth/RecoverAccount/recover.html");

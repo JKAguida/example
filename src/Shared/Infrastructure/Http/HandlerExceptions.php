@@ -14,6 +14,9 @@ use App\Auth\Domain\Exception\InvalidTokenException;
 use App\Auth\Domain\Exception\InvalidTokenTypeException;
 use App\Auth\Domain\Exception\TokenExpiredException;
 use App\Shared\Infrastructure\Http\Exception\InvalidPathException;
+use App\Shared\Domain\Exception\ExceptionContextInterface;
+use App\Shared\Infrastructure\Http\Exception\IncompletePayloadException;
+
 
 
 final class HandlerExceptions {
@@ -91,11 +94,16 @@ final class HandlerExceptions {
         $prev = $exception->getPrevious();
         error_log("[".$status_code."][".$code."] [".$method ." - ". $path."]: ".$exception->getMessage().(isset($prev)?$prev:''));
         
+        $data = null;
+        if($exception instanceof ExceptionContextInterface){
+            $data = $exception->context();
+        }
         return new Response(
             msg:$msg,
             status_code:$status_code,
             code:$code,
-            status:$status
+            status:$status,
+            data:$data
         );
     }
 }

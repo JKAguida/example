@@ -10,8 +10,7 @@ final class LogoutAllController {
     ) {}
 
     public function execute():void {
-        $data = json_decode(file_get_contents('php://input'),true);
-        $this->logoutAll->logoutAll($data['userId']);
+        $this->logoutAll->logoutAll();
         $response = new Response(
             msg: "Todas las sesiones han sido cerradas"
         );

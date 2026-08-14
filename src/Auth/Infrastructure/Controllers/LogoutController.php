@@ -3,7 +3,6 @@
 namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\UseCase\Logout;
 use App\Shared\Infrastructure\Http\Response;
-use InvalidArgumentException;
 
 
 final class LogoutController {
@@ -12,8 +11,7 @@ final class LogoutController {
     ){}
 
     public function execute(): void {
-        $token = json_decode(file_get_contents("php://input"),true);
-        $this->logout->logout($token['refreshToken']);
+        $this->logout->logout();
         $response = new Response(
             msg: "Sesión cerrada."
         );

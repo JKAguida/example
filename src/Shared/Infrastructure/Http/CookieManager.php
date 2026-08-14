@@ -16,4 +16,8 @@ final class CookieManager implements CookieManagerInterface {
             "sameSite" => "Lax"
         ]);
     }
+
+    public function get(string $key) : ?string{
+        return $_COOKIE[$key] ?? null;
+    }
 }
