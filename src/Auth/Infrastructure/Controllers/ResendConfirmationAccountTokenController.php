@@ -13,14 +13,10 @@ final class ResendConfirmationAccountTokenController {
 
     public function execute(){
         $data = json_decode(file_get_contents("php://input"),true);
-        try {
-            $this->useCase->execute($data['email']);
-            $response = new Response(
-                msg:"Si los datos son correctos, recibiras un email para que confirmes tu cuenta"
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $this->useCase->execute($data['email']);
+        $response = new Response(
+            msg:"Si los datos son correctos, recibiras un email para que confirmes tu cuenta"
+        );
+        $response->send();
     }
 }

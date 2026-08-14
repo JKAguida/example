@@ -22,15 +22,11 @@ final class RegisterController{
 
         $response = null;
         
-        try {
-            $this->registerUser->register($registerUserRequestDTO);
-            $response = new Response(
-                msg: 'Usuario registrado, confirme su cuenta vía email.',
-                status_code:201
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $this->registerUser->register($registerUserRequestDTO);
+        $response = new Response(
+            msg: 'Usuario registrado, confirme su cuenta vía email.',
+            status_code:201
+        );
+        $response->send();
     }
 }

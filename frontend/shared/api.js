@@ -17,12 +17,14 @@ export async function fetchAPI(path, data, method) {
     try {
         const uri = 'http://localhost:8000'+path
         const response = await fetch(uri,config);
-        //console.log("[DEBUG - API]: ",response);
-        return {
+        console.log("[DEBUG - API]: ",response);
+        const response_formated = {
             ok:response.ok,
             status:response.status,
             data: await response.json()
         }
+        console.log("[DEBUG - API - FORMATED]: ", response_formated);
+        return response_formated;
     } catch (error) {
         return {
             ok:false,

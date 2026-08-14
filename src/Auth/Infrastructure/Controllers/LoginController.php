@@ -19,17 +19,13 @@ final class LoginController {
             $_SERVER['HTTP_USER_AGENT']
         );
 
-        try {
-            $loginResponseDTO = $this->login->login($loginDTO);
-            $response = new Response(
-                msg: "Inicio de sessión exitoso",
-                data: [
-                    "accessToken" => $loginResponseDTO->accessToken()
-                ]
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $loginResponseDTO = $this->login->login($loginDTO);
+        $response = new Response(
+            msg: "Inicio de sessión exitoso",
+            data: [
+                "accessToken" => $loginResponseDTO->accessToken()
+            ]
+        );
+        $response->send();
     }
 }

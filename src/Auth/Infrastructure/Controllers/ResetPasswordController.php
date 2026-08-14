@@ -15,17 +15,13 @@ final class ResetPasswordController {
         $token = $_GET['confirmation'];
         $data = json_decode(file_get_contents('php://input'),true);
 
-        try {
-            $this->resetPassword->reset(
-                $token,
-                $data['rawPassword']
-            );
-            $response = new Response(
-                msg: "Contraseña actualizada",
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $this->resetPassword->reset(
+            $token,
+            $data['rawPassword']
+        );
+        $response = new Response(
+            msg: "Contraseña actualizada",
+        );
+        $response->send();
     }
 }

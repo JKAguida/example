@@ -12,14 +12,10 @@ final class VerifyResetPasswordTokenController {
 
     public function execute():void {
         $token = $_GET['confirmation'];
-        try {
-            $this->tokenConfirm->verifyToken($token);
-            $response = new Response(
-                "Token válido, puede continuar con el cambio de contraseña."
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $this->tokenConfirm->verifyToken($token);
+        $response = new Response(
+            "Token válido, puede continuar con el cambio de contraseña."
+        );
+        $response->send();
     }
 }

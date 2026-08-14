@@ -13,14 +13,10 @@ final class LogoutController {
 
     public function execute(): void {
         $token = json_decode(file_get_contents("php://input"),true);
-        try {
-            $this->logout->logout($token['refreshToken']);
-            $response = new Response(
-                msg: "Sesión cerrada."
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $this->logout->logout($token['refreshToken']);
+        $response = new Response(
+            msg: "Sesión cerrada."
+        );
+        $response->send();
     }
 }

@@ -11,14 +11,10 @@ final class PasswordRecoveryController {
 
     public function execute(): void {
         $data = json_decode(file_get_contents('php://input'),true);
-        try {
-            $this->passwordRecovery->passwordRecoveryRequest($data['email']);
-            $response = new Response(
-                msg: "Se ha enviado un email para continuar el proceso"
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $this->passwordRecovery->passwordRecoveryRequest($data['email']);
+        $response = new Response(
+            msg: "Se ha enviado un email para continuar el proceso"
+        );
+        $response->send();
     }
 }

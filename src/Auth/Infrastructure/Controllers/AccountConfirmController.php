@@ -13,14 +13,10 @@ final class AccountConfirmController {
 
     public function execute():void {
         $token = $_GET['confirmation'];
-        try {
-            $this->accountConfirm->confirmAccount($token);
-            $response = new Response(
-                "Cuenta confirmada, ya puede iniciar sesión"
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $this->accountConfirm->confirmAccount($token);
+        $response = new Response(
+            "Cuenta confirmada, ya puede iniciar sesión"
+        );
+        $response->send();
     }
 }

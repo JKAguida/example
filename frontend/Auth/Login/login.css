@@ -19,3 +19,12 @@
         width: 40%;
     }
 }
+
+#btn-resend-email {
+    padding: 1.5rem;
+    background-color: var(--primary-bg);
+    color: var(--primary-color);
+    border-radius: 0.5rem;
+    display: block;
+    margin-top: 1rem;
+}

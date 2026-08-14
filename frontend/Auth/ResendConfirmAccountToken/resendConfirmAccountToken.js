@@ -8,7 +8,7 @@ let resendForm = null
 let spinner = null;
 
 function init() {
-    console.log("[DEBUG]: RECOVER SCRIPT LOADED");
+    console.log("[DEBUG]: RESEND SCRIPT LOADED");
     spinner = window.document.getElementById("spinner");
     spinner.classList.add("hidden");
     resendForm = {

@@ -52,16 +52,27 @@ function handleSubmit() {
 
         if (!response.ok && response.status) {
             toast(null, 'error', response.data.msg);
+            if (response.data.code === 'NOT_VERIFIED') {
+                if(!window.document.getElementById("btn-resend-email")){
+                    const link = document.createElement('a');
+                    link.id = "btn-resend-email";
+                    link.href = '/Auth/ResendConfirmAccountToken/resendConfirmAccountToken.html';
+                    link.textContent = '¿No recibiste ningún email? Solicita un nuevo email de confirmación.';
+                    link.classList.add("form__links--link");
+                    form.insertAdjacentElement('beforeend', link);
+                }
+            }
+
         }
 
         if (response.ok && response.status) {
             form.reset();
             toast(null, 'success', response.data.msg);
+            window.sessionStorage.setItem(ACCESS_TOKEN_KEY, response.data.data.accessToken);
         }
         form.classList.remove('hidden');
         spinner.classList.add('hidden');
         //console.log(response);
-        window.sessionStorage.setItem(ACCESS_TOKEN_KEY, response.data.data.accessToken);
     })
 }
 

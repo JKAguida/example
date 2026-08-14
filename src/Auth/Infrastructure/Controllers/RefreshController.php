@@ -12,20 +12,16 @@ final class RefreshController {
 
     public function execute():void {
         $data = json_decode(file_get_contents('php://input'),true);
-        try {
-            $loginResponse = $this->refresh->refresh(
-                $data['strRefreshTokenValue'],
-                $_SERVER['HTTP_USER_AGENT']
-            );
-            $response = new Response(
-                msg: "Sesión actualizada",
-                data: [
-                    "accessToken" => $loginResponse->accessToken()
-                ]
-            );
-            $response->send();
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $loginResponse = $this->refresh->refresh(
+            $data['strRefreshTokenValue'],
+            $_SERVER['HTTP_USER_AGENT']
+        );
+        $response = new Response(
+            msg: "Sesión actualizada",
+            data: [
+                "accessToken" => $loginResponse->accessToken()
+            ]
+        );
+        $response->send();
     }
 }
