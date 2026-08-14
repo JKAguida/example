@@ -100,3 +100,28 @@ El usuario sigue tutor mode correctamente:
 - Cuestiona arquitectura ("¿Web Components o Include?")
 - Verifica lógica antes de implementar
 - Aprende conceptos transferibles, no solo sintaxis
+
+### Sesión 2026-08-13 (Continuación)
+
+**Training Bounded Context - Planificación:**
+- ✓ Decidió nuevo BC para "Rutinas de Ejercicio" (Training)
+- ✓ Identificó que Progreso depende de Rutina → mismo BC
+- ✓ Estructura propuesta:
+  ```
+  Training (Bounded Context)
+  ├── Rutina (entidad)
+  │   ├── nombre, descripción, ejercicios
+  │   └── metadata (creado, actualizado)
+  ├── Progreso (entidad)
+  │   ├── rutina_id (FK)
+  │   ├── fecha, duración, notas
+  │   └── ejercicios_realizados
+  └── Ejercicio (value object?)
+      ├── nombre, series, repeticiones, peso
+  ```
+- ✓ Decidió hacer backend primero (siguiente paso)
+
+**Aprendizaje adicional:**
+- Usuario pregunta si estructura debe separarse en BC distintos (Training vs Tracking)
+- Razonó correctamente: Progreso sin Rutina no tiene sentido → mismo BC
+- Pensamiento: "¿backend o frontend?" → eligió backend (decisión acertada: datos primero)
