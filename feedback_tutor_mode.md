@@ -125,3 +125,52 @@ El usuario sigue tutor mode correctamente:
 - Usuario pregunta si estructura debe separarse en BC distintos (Training vs Tracking)
 - Razonó correctamente: Progreso sin Rutina no tiene sentido → mismo BC
 - Pensamiento: "¿backend o frontend?" → eligió backend (decisión acertada: datos primero)
+
+### Sesión 2026-08-14 (Auth + Roles Implementation)
+
+**Auth Completion:**
+- ✓ Fixed login.js: detecta NOT_VERIFIED code, muestra link "Solicitar nuevo token"
+- ✓ Implementó logout module reutilizable (no toca DOM)
+- ✓ Frontend envía Authorization header en todas las requests
+- ✓ AccessToken en sessionStorage (temporal, más seguro)
+- ✓ RefreshToken en HttpOnly cookie (persistente)
+
+**Roles Architecture Design:**
+- ✓ RoleType enum (User, Admin) — value object
+- ✓ RoleId ValueObject — UUIDv7
+- ✓ Role Entity — con create() y reconstitute()
+- ✓ Migraciones BD:
+  - `roles` table (roleId, roleType)
+  - `user_roles` table (composite PK: userId, roleId) con FKs
+- ✓ RoleRepository (arreglado: reconstitute correcto)
+- ✓ Diseño UserRoleRepository:
+  - assignRoleToUser(UserId, RoleId)
+  - findByUserId(UserId): array<Role>
+  - removeRole(UserId, RoleId)
+  - hasRole(UserId, RoleType): bool
+  - Inyecta RoleRepository para reutilizar reconstitución
+
+**Decisiones Arquitectónicas:**
+- ✓ Roles NO son lógica de dominio de User (solo autorización)
+- ✓ Roles se consultan desde BD cuando se necesitan
+- ✓ UserRoleRepository maneja tabla user_roles (M:N)
+- ✓ RoleRepository maneja tabla roles
+- ✓ Separación clara de responsabilidades
+
+**Motivación Real:**
+- Usuario planea migrar proyecto existente de "código espagueti" a hexagonal + DDD
+- Por eso quiere Auth + Roles COMPLETO y production-ready
+- Eligió CLI para crear admin (no SQL manual, no seed)
+
+**Pendiente:**
+- UserRoleRepository (implementación)
+- CreateAdminUser UseCase
+- CLI command create-admin
+- Web Components navbar + Dashboard
+- Interceptor 401
+
+**Aprendizaje:**
+- Usuario cuestiona arquitectura constantemente ("¿es M:N?", "¿rol en User o separado?")
+- Identifica correctamente que UserRoleRepository ≠ RoleRepository
+- Propone inyectar RoleRepository para reutilizar reconstitución (DRY)
+- Trade-off: N+1 queries vs reutilizar lógica (eligió bien para aprendizaje)
