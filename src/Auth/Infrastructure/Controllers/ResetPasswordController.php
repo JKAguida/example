@@ -2,8 +2,8 @@
 
 namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\UseCase\ResetPassword;
-use App\Auth\Domain\Exception\InvalidTokenException;
 use App\Shared\Infrastructure\Http\Response;
+use App\Shared\Infrastructure\Http\PayloadValidator;
 
 
 final class ResetPasswordController {
@@ -12,8 +12,11 @@ final class ResetPasswordController {
     ){}
 
     public function execute(): void {
+        PayloadValidator::validate($_GET,['confirmation']);
         $token = $_GET['confirmation'];
+
         $data = json_decode(file_get_contents('php://input'),true);
+        PayloadValidator::validate($data,['rawPassword']);
 
         $this->resetPassword->reset(
             $token,

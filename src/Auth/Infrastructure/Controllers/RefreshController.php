@@ -2,7 +2,6 @@
 
 namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\UseCase\Refresh;
-use App\Auth\Domain\Exception\InvalidTokenException;
 use App\Shared\Infrastructure\Http\Response;
 
 final class RefreshController {

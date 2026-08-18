@@ -4,7 +4,8 @@ namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\DTO\RegisterUserRequestDTO;
 use App\Auth\Application\UseCase\RegisterUser;
 use App\Shared\Infrastructure\Http\Response;
-use App\Auth\Domain\Exception\EmailAlreadyExistsException;
+use App\Shared\Infrastructure\Http\PayloadValidator;
+
 
 final class RegisterController{
     public function __construct(
@@ -13,14 +14,13 @@ final class RegisterController{
 
     public function execute():void{
         $data = json_decode(file_get_contents('php://input'),true);
+        PayloadValidator::validate($data,['userName','lastName','email','rawPassword']);
         $registerUserRequestDTO = new RegisterUserRequestDTO(
             $data['userName'],
             $data['lastName'],
             $data['email'],
             $data['rawPassword']
         );
-
-        $response = null;
         
         $this->registerUser->register($registerUserRequestDTO);
         $response = new Response(

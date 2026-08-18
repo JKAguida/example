@@ -3,8 +3,8 @@
 namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\UseCase\AccountConfirm;
 use App\Shared\Infrastructure\Http\Response;
-use App\Auth\Domain\Exception\UserNotFoundException;
-use App\Auth\Domain\Exception\InvalidTokenException;
+use App\Shared\Infrastructure\Http\PayloadValidator;
+
 
 final class AccountConfirmController {
     public function __construct(
@@ -12,6 +12,7 @@ final class AccountConfirmController {
     ) {}
 
     public function execute():void {
+        PayloadValidator::validate($_GET,['confirmation']);
         $token = $_GET['confirmation'];
         $this->accountConfirm->confirmAccount($token);
         $response = new Response(
