@@ -3,6 +3,7 @@
 namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\UseCase\PasswordRecovery;
 use App\Shared\Infrastructure\Http\Response;
+use App\Shared\Infrastructure\Http\PayloadValidator;
 
 final class PasswordRecoveryController {
     public function __construct(
@@ -11,6 +12,8 @@ final class PasswordRecoveryController {
 
     public function execute(): void {
         $data = json_decode(file_get_contents('php://input'),true);
+        PayloadValidator::validate($data,['email']);
+        
         $this->passwordRecovery->passwordRecoveryRequest($data['email']);
         $response = new Response(
             msg: "Se ha enviado un email para continuar el proceso"

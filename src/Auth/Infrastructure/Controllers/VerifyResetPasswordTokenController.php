@@ -3,7 +3,8 @@
 namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\UseCase\VerifyResetPasswordToken;
 use App\Shared\Infrastructure\Http\Response;
-use App\Auth\Domain\Exception\InvalidTokenException;
+use App\Shared\Infrastructure\Http\PayloadValidator;
+
 
 final class VerifyResetPasswordTokenController {
     public function __construct(
@@ -11,6 +12,7 @@ final class VerifyResetPasswordTokenController {
     ) {}
 
     public function execute():void {
+        PayloadValidator::validate($_GET,['confirmation']);
         $token = $_GET['confirmation'];
         $this->tokenConfirm->verifyToken($token);
         $response = new Response(

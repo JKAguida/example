@@ -2,6 +2,9 @@
 
 namespace App\Auth\Domain\Repository;
 
+use App\Auth\Domain\ValueObject\RoleId;
+use App\Auth\Domain\ValueObject\UserId;
+use App\Auth\Domain\ValueObject\RoleType;
 
 interface UserRoleRepositoryInterface {
     public function assignRoleToUser(UserId $userId, RoleId $roleId): void;

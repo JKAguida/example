@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Auth\Domain\Entity;
-use App\Shared\Domain\ValueObject\RoleId;
-use App\Shared\Domain\ValueObject\RoleType;
+use App\Auth\Domain\ValueObject\RoleId;
+use App\Auth\Domain\ValueObject\RoleType;
 
 
 final class Role {

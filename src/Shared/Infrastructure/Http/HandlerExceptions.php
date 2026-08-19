@@ -16,6 +16,8 @@ use App\Auth\Domain\Exception\TokenExpiredException;
 use App\Shared\Infrastructure\Http\Exception\InvalidPathException;
 use App\Shared\Domain\Exception\ExceptionContextInterface;
 use App\Shared\Infrastructure\Http\Exception\IncompletePayloadException;
+use App\Shared\Infrastructure\Exception\BadConfigurationException;
+use App\Auth\Application\Security\Exception\AccessTokenExpiredException;
 
 
 
@@ -24,6 +26,11 @@ final class HandlerExceptions {
         CorruptedPersistedDataException::class => [
             'status_code' => 500,
             'code' => 'CORRUPTED_DATA',
+            'msg' => 'Ha ocurrido un error interno, intente mas tarde.'
+        ],
+        BadConfigurationException::class => [
+            'status_code' => 500,
+            'code' => 'BAD_CONFIGURATION',
             'msg' => 'Ha ocurrido un error interno, intente mas tarde.'
         ],
         InvalidInputException::class => [
@@ -60,6 +67,11 @@ final class HandlerExceptions {
             'status_code'=> 401,
             'code' => 'TOKEN_EXPIRED',
             'msg' => 'El token ha expirado, solicite uno nuevo.'
+        ],
+        AccessTokenExpiredException::class => [
+            'status_code'=> 401,
+            'code' => 'ACCESS_TOKEN_EXPIRED',
+            'msg' => 'El token ha expirado.'
         ],
         InvalidPathException::class => [
             'status_code'=> 404,

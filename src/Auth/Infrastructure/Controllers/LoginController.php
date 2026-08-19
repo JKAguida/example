@@ -3,8 +3,9 @@
 namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\UseCase\Login;
 use App\Auth\Application\DTO\LoginRequestDTO;
-use App\Auth\Domain\Exception\InvalidCredentialsException;
 use App\Shared\Infrastructure\Http\Response;
+use App\Shared\Infrastructure\Http\PayloadValidator;
+
 
 final class LoginController {
     public function __construct(
@@ -13,6 +14,7 @@ final class LoginController {
 
     public function execute(): void {
         $data = json_decode(file_get_contents("php://input"),true);
+        PayloadValidator::validate($data,['email','rawPassword']);
         $loginDTO = new LoginRequestDTO(
             $data['email'],
             $data['rawPassword'],
