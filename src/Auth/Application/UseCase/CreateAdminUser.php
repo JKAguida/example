@@ -70,12 +70,12 @@ final class CreateAdminUser {
             $userId
         );
 
+        // Recuperar el role
+        $role = $this->roleRepository->findByRoleType(RoleType::Admin);
+        if(!$role) throw new CorruptedPersistedDataException("El tipo de rol no fue encontrado.");
         
         $this->transactionManager->begin();
         try {
-            // Recuperar el role
-            $role = $this->roleRepository->findByRoleType(RoleType::Admin);
-            if(!$role) throw new CorruptedPersistedDataException("El tipo de rol no fue encontrado.");
             // Enviar la instancia de usuario al repository
             $this->userRepository->save($nwUser);
             // Enviar la instancia del token al repository
