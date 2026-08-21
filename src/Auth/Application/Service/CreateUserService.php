@@ -1,0 +1,85 @@
+<?php
+
+namespace App\Auth\Application\Service;
+use App\Auth\Application\DTO\RegisterUserRequestDTO;
+
+use App\Auth\Domain\ValueObject\UserId;
+use App\Auth\Domain\ValueObject\UserName;
+use App\Auth\Domain\ValueObject\LastName;
+use App\Auth\Domain\ValueObject\Email;
+use App\Auth\Domain\ValueObject\RawPassword;
+use App\Auth\Domain\ValueObject\TokenType;
+use App\Auth\Domain\ValueObject\RoleType;
+
+use App\Auth\Domain\Entity\User;
+use App\Auth\Domain\Entity\VerificationToken;
+
+use App\Auth\Domain\Service\VerifyEmailExist;
+use App\Auth\Domain\Service\PasswordHashInterface;
+
+use App\Auth\Domain\Repository\UserRepositoryInterface;
+use App\Auth\Domain\Repository\VerificationTokenRepositoryInterface;
+use App\Auth\Domain\Repository\UserRoleRepositoryInterface;
+use App\Auth\Domain\Repository\RoleRepositoryInterface;
+
+
+use App\Shared\Domain\Exception\CorruptedPersistedDataException;
+
+
+
+final class CreateUserService {
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly RoleRepositoryInterface $roleRepository,
+        private readonly UserRoleRepositoryInterface $userRoleRepository,
+        private readonly VerificationTokenRepositoryInterface $verificationTokenRepository,
+        private readonly PasswordHashInterface $passwordHashed,
+        private readonly VerifyEmailExist $verifyEmailExist,
+    ){}
+
+    public function execute(RegisterUserRequestDTO $userData):User{
+        // Tranformar datos a los VO correspondientes
+        $userId = UserId::generate();
+        $userName = UserName::create($userData->userName());
+        $lastName = LastName::create($userData->lastName());
+        $email = Email::create($userData->email());
+        $rawPassword = RawPassword::create($userData->rawPassword());
+        
+        // Validar la existencia del email
+        $this->verifyEmailExist->execute($email);
+        
+        // Hashear la contraseña
+        $passHash = $this->passwordHashed->hash($rawPassword);
+
+        // Instanciar la entidad
+        $nwUser = User::register(
+            $userId,
+            $userName,
+            $lastName,
+            $email,
+            $passHash
+        );
+
+        // Generar el token de verificación
+        $nwToken = VerificationToken::create(
+            TokenType::EmailConfirmation,
+            $userId
+        );
+
+        // Recuperar el role
+        $role = $this->roleRepository->findByRoleType(RoleType::User);
+        if(!$role) throw new CorruptedPersistedDataException("El tipo de rol no fue encontrado.");
+
+        // Enviar la instancia de usuario al repository
+        $this->userRepository->save($nwUser);
+        // Enviar la instancia del token al repository
+        $this->verificationTokenRepository->save($nwToken);
+        // asiganr el rol
+        $this->userRoleRepository->assignRoleToUser($userId,$role->roleId());
+        
+        
+
+        return $nwUser;
+
+    }
+}

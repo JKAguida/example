@@ -7,7 +7,13 @@ use App\Shared\Infrastructure\Di\ContainerConfig;
 use App\Shared\Infrastructure\Router\Router;
 use App\Shared\Infrastructure\Middleware\CORSMiddleware;
 use App\Shared\Infrastructure\Http\HandlerExceptions;
-
+use App\Auth\Domain\Events\UserRegistered;
+use App\Auth\Infrastructure\EventListener\SendEmailConfirmation;
+use App\Auth\Domain\Events\PasswordRecoveryRequested;
+use App\Auth\Infrastructure\EventListener\SendPasswordRecoveryEmail;
+use App\Auth\Domain\Events\ConfirmationTokenResent;
+use App\Auth\Infrastructure\EventListener\ResendEmailConfirmationToken;
+use App\Shared\Application\Port\EventDispatcherInterface;
 
 $request_method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'];
@@ -18,11 +24,11 @@ try {
     $container = ContainerConfig::create();
     CORSMiddleware::handle();
 
-    $dispatcher = $container->get("App\Shared\Application\Port\EventDispatcherInterface");
+    $dispatcher = $container->get(EventDispatcherInterface::class);
 
-    $dispatcher->addListener("App\Auth\Domain\Events\UserRegistered",$container->get("App\Auth\Infrastructure\EventListener\SendEmailConfirmation"));
-    $dispatcher->addListener("App\Auth\Domain\Events\PasswordRecoveryRequested",$container->get("App\Auth\Infrastructure\EventListener\SendPasswordRecoveryEmail"));
-    $dispatcher->addListener("App\Auth\Domain\Events\ConfirmationTokenResent",$container->get("App\Auth\Infrastructure\EventListener\ResendEmailConfirmationToken"));
+    $dispatcher->addListener(UserRegistered::class,$container->get(SendEmailConfirmation::class));
+    $dispatcher->addListener(PasswordRecoveryRequested::class,$container->get(SendPasswordRecoveryEmail::class));
+    $dispatcher->addListener(ConfirmationTokenResent::class,$container->get(ResendEmailConfirmationToken::class));
 
     $controller = Router::resolve($request_method,$path_clean);
     $instance = $container->get($controller);

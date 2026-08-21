@@ -22,7 +22,7 @@ final class RegisterController{
             $data['rawPassword']
         );
         
-        $this->registerUser->register($registerUserRequestDTO);
+        $this->registerUser->execute($registerUserRequestDTO);
         $response = new Response(
             msg: 'Usuario registrado, confirme su cuenta vía email.',
             status_code:201
