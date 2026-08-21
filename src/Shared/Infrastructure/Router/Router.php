@@ -10,7 +10,7 @@ final class Router {
 
     private function __construct(){}
 
-    public static function resolve(string $method, string $path): string {
+    public static function resolve(string $method, string $path): array {
         $uri_parts = explode('/',$path);
         $bounded_context = $uri_parts[1];
         if(!isset(self::$routers[$bounded_context])) throw new InvalidPathException("El bounded context no esta definido.");

@@ -3,7 +3,7 @@
 namespace App\Shared\Infrastructure\Di;
 use App\Shared\Infrastructure\Di\Container;
 
-use App\Auth\Infrastructure\Controllers\RegisterController; 
+use App\Auth\Infrastructure\Controllers\RegisterController;
 use App\Auth\Application\UseCase\RegisterUser;
 use App\Auth\Application\Service\CreateUserService;
 use App\Auth\Domain\Service\VerifyEmailExist; 
@@ -66,6 +66,11 @@ use App\Auth\Infrastructure\Security\JWTVerify;
 
 use App\Auth\Application\UseCase\CreateAdminUser;
 
+use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
+
+use App\Auth\Infrastructure\Controllers\RegisterUserWithRoleController;
+use App\Auth\Application\UseCase\RegisterUserWithRole;
+
 
 
 
@@ -124,6 +129,10 @@ final class ContainerConfig {
             ResendEmailConfirmationToken::class => ResendEmailConfirmationToken::class,
 
             CreateAdminUser::class => CreateAdminUser::class,
+            CheckAuthMiddleware::class => CheckAuthMiddleware::class,
+
+            RegisterUserWithRoleController::class => RegisterUserWithRoleController::class,
+            RegisterUserWithRole::class => RegisterUserWithRole::class,
             
             \PDO::class => function(){ 
                 return new \PDO(

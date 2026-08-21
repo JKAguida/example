@@ -14,6 +14,11 @@ use App\Auth\Infrastructure\EventListener\SendPasswordRecoveryEmail;
 use App\Auth\Domain\Events\ConfirmationTokenResent;
 use App\Auth\Infrastructure\EventListener\ResendEmailConfirmationToken;
 use App\Shared\Application\Port\EventDispatcherInterface;
+use App\Auth\Infrastructure\Middleware\AuthControllerContextInterface;
+use App\Shared\Infrastructure\Exception\BadConfigurationException;
+use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
+
+
 
 $request_method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'];
@@ -30,8 +35,28 @@ try {
     $dispatcher->addListener(PasswordRecoveryRequested::class,$container->get(SendPasswordRecoveryEmail::class));
     $dispatcher->addListener(ConfirmationTokenResent::class,$container->get(ResendEmailConfirmationToken::class));
 
-    $controller = Router::resolve($request_method,$path_clean);
-    $instance = $container->get($controller);
+    $controller_data = Router::resolve($request_method,$path_clean);
+    $instance = $container->get($controller_data['controller']);
+    
+    $userId = null;
+
+    if(isset($controller_data['middlewares'])){
+        foreach($controller_data['middlewares'] as $value){
+            $middleware = $container->get($value);
+            if($middleware instanceof CheckAuthMiddleware){
+                $userId = $middleware->execute();
+            }else{
+                $middleware->execute();
+            }
+        }
+    }
+
+    if($instance instanceof AuthControllerContextInterface && !$userId){
+        throw new BadConfigurationException("Parece que no ha sido declarado el middleware en la ruta de este controlador. ".$controller_data['controller']);
+    }
+    if($instance instanceof AuthControllerContextInterface && $userId){
+        $instance->setUserId($userId);
+    }
     $instance->execute();
 } catch (\Throwable $th) {
     $handler = new HandlerExceptions();

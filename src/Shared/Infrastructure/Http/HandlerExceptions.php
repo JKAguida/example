@@ -13,6 +13,7 @@ use App\Auth\Domain\Exception\InvalidCredentialsException;
 use App\Auth\Domain\Exception\InvalidTokenException;
 use App\Auth\Domain\Exception\InvalidTokenTypeException;
 use App\Auth\Domain\Exception\TokenExpiredException;
+use App\Shared\Domain\Exception\NotAuthorizedException;
 use App\Shared\Infrastructure\Http\Exception\InvalidPathException;
 use App\Shared\Domain\Exception\ExceptionContextInterface;
 use App\Shared\Infrastructure\Http\Exception\IncompletePayloadException;
@@ -81,7 +82,12 @@ final class HandlerExceptions {
         IncompletePayloadException::class => [
             'status_code'=> 400,
             'code' => 'INCOMPLETE_PAYLOAD',
-            'msg' => 'No se han recibido todos los datos requeridos'
+            'msg' => 'No se han recibido todos los datos requeridos.'
+        ],
+        NotAuthorizedException::class => [
+            'status_code'=> 403,
+            'code' => 'NOT_AUTHORIZED',
+            'msg' => 'No tienes los permisos para acceder al recurso.'
         ],
     ];
 

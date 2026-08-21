@@ -1,27 +1,67 @@
 <?php
 
 namespace App\Auth\Infrastructure\Router;
+use App\Auth\Infrastructure\Controllers\RegisterController;
+use App\Auth\Infrastructure\Controllers\AccountConfirmController;
+use App\Auth\Infrastructure\Controllers\LoginController;
+use App\Auth\Infrastructure\Controllers\RefreshController;
+use App\Auth\Infrastructure\Controllers\LogoutController;
+use App\Auth\Infrastructure\Controllers\LogoutAllController;
+use App\Auth\Infrastructure\Controllers\PasswordRecoveryController;
+use App\Auth\Infrastructure\Controllers\VerifyResetPasswordTokenController;
+use App\Auth\Infrastructure\Controllers\ResetPasswordController;
+use App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController;
+use App\Auth\Infrastructure\Controllers\RegisterUserWithRoleController;
+use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
+
+
 
 final class AuthRouter {
     private static array $routes = [
         'GET' => [
-            "/auth/confirm" => "App\Auth\Infrastructure\Controllers\AccountConfirmController",
-            "/auth/verify-reset-token" => "App\Auth\Infrastructure\Controllers\VerifyResetPasswordTokenController",
+            "/auth/confirm" => [ 
+                "controller" => AccountConfirmController::class
+            ],
+            "/auth/verify-reset-token" => [ 
+                "controller" => VerifyResetPasswordTokenController::class
+            ],
+            
         ],
         'POST' => [
-            "/auth/register" => "App\Auth\Infrastructure\Controllers\RegisterController",
-            "/auth/login" => "App\Auth\Infrastructure\Controllers\LoginController",
-            "/auth/request-new-password" => "App\Auth\Infrastructure\Controllers\PasswordRecoveryController",
-            "/auth/reset-password" => "App\Auth\Infrastructure\Controllers\ResetPasswordController",
-            "/auth/logout" => "App\Auth\Infrastructure\Controllers\LogoutController",
-            "/auth/logout-all-sessions" => "App\Auth\Infrastructure\Controllers\LogoutAllController",
-            "/auth/resend-confirm-account" => "App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController"
+            "/auth/register" => [ 
+                "controller"=>RegisterController::class
+            ],
+            "/auth/login" => [ 
+                "controller" => LoginController::class
+            ],
+            "/auth/request-new-password" => [ 
+                "controller" => PasswordRecoveryController::class
+            ],
+            "/auth/reset-password" => [ 
+                "controller" => ResetPasswordController::class
+            ],
+            "/auth/logout" => [ 
+                "controller" => LogoutController::class
+            ],
+            "/auth/logout-all-sessions" => [ 
+                "controller" => LogoutAllController::class
+            ],
+            "/auth/resend-confirm-account" => [ 
+                "controller" => ResendConfirmationAccountTokenController::class
+            ],
+            "/auth/refresh" => [ 
+                "controller" => RefreshController::class
+            ],
+            "/auth/create-user" => [ 
+                "controller" => RegisterUserWithRoleController::class,
+                "middlewares" => [CheckAuthMiddleware::class]
+            ],
         ]
     ];
 
     private function __construct(){}
 
-    public static function router(string $method, string $path):?string {
-        return self::$routes[$method][$path] ?? null;
+    public static function router(string $method, string $path):?array {
+        return isset(self::$routes[$method][$path]) ? self::$routes[$method][$path] : null;
     }
 }
