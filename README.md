@@ -40,3 +40,9 @@ openssl pkey -in private.pem -pubout -out public.pem
 chmod 600 private.pem   # solo tú puedes leerla
 chmod 644 public.pem    # ésta sí puede ser legible por todos
 ```
+
+***Ejecutar en terminal seed y cli***
+```bash
+php bin/cli.php seed-roles
+php bin/cli.php create-admin
+```
