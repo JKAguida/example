@@ -2,6 +2,7 @@
 
 namespace App\Shared\Infrastructure\Di;
 use ReflectionClass;
+use ReflectionNamedType;
 
 final class Container {
     private array $binds = [];
@@ -20,7 +21,9 @@ final class Container {
             $implementation = $this->binds[$requiredClass];
         }
 
-        if(!$implementation) throw new \InvalidArgumentException("La clase solicitada no existe en el container");
+        if(!$implementation){
+            $implementation = $targetClass;
+        }
 
         if(array_key_exists($targetClass,$this->instances)){
             return $this->instances[$targetClass];
@@ -29,17 +32,28 @@ final class Container {
         if(is_callable($implementation)){
             $this->instances[$targetClass] = $implementation($this);
         }else{
+            if(!class_exists($implementation) && !interface_exists($implementation)) throw new \InvalidArgumentException("La clase no existe: ".$implementation);
+            
             $reflection = new ReflectionClass($implementation);
+            if(!$reflection->isInstantiable()){
+                throw new \InvalidArgumentException("Falta registrar un binding para: ".$implementation);
+            }
             $constructor = $reflection->getConstructor();
             if($constructor){
                 $params = $constructor->getParameters();
                 if($params){
                     foreach($params as $value){
-                        $paramType = $value->getType();
-                        $typeName = (string)$paramType;
-                        $primitives = ['string', 'int', 'bool', 'float', 'array', 'object'];
-                        if (!in_array($typeName, $primitives)) {
-                            $resolvedParams[] = $this->get($typeName);
+                        
+                        if($value->hasType()){
+                            $paramType = $value->getType();
+                            if($paramType instanceof ReflectionNamedType){
+                                $typeName = $paramType->getName();
+                                $isBuiltin = $paramType->isBuiltin();
+
+                                if (!$isBuiltin) {
+                                    $resolvedParams[] = $this->get($typeName);
+                                }
+                            }
                         }
                     }
                     $this->instances[$targetClass] = $reflection->newInstanceArgs($resolvedParams);
