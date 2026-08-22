@@ -92,8 +92,9 @@ src/
   Auth/Infrastructure/EventListener/SendEmailConfirmation.php       pendiente
   Shared/Infrastructure/Mailer/SmtpMailer.php                       ✓ (PHPMailer, STARTTLS, try/finally para smtpClose)
   Auth/Infrastructure/EventListener/SendEmailConfirmation.php       ✓
-  Shared/Infrastructure/Di/Container.php                            ✓ (Resolución automática + singleton)
-  Shared/Infrastructure/Di/ContainerConfig.php                      ✓ (registro de bindings, PDO callable)
+  Shared/Infrastructure/Di/Container.php                            ✓ (autowiring + singleton + detección de ciclos)
+  Shared/Infrastructure/Di/SharedContainerConfig.php                ✓ (puertos de Shared: PDO, Mailer, Cookie, Request…)
+  Auth/Infrastructure/Di/AuthContainerConfig.php                    ✓ (puertos de Auth: repos, PasswordHash, JWT)
   Shared/Infrastructure/Bootstrap/EnvironmentLoader.php             ✓ (carga .env con putenv)
   public/index.php                                                  ✓ (bootstrap principal, date_default_timezone_set UTC)
   Shared/Infrastructure/Router/Router.php                           ✓ (orquestador de rutas por bounded context)
@@ -174,15 +175,20 @@ src/
 - **Próximo paso:** Aprender Vanilla JS 3-4 semanas, luego React
 
 ### Container de Inyección de Dependencias
-- `Container` es estricto — solo instancia clases registradas (no instancia automáticamente)
+- **`Container` usa autowiring** — si una clase no tiene binding registrado, se instancia a sí misma vía Reflection. Solo se registran las decisiones reales: puerto → adaptador, y callables que necesitan configuración (rutas de llaves, credenciales)
 - `$targetClass` (clave de instancias) siempre es `$requiredClass` para unicidad
 - `$implementation` es lo que se instancia (string de clase o callable)
 - Singletons: una instancia por clave, compartida globalmente
-- Resolución recursiva: si una clase depende de otra registrada, la resuelve automáticamente
+- Resolución recursiva: si una clase depende de otra, la resuelve automáticamente
 - Usa Reflection para inspeccionar constructores e inyectar dependencias
-- Filtra tipos primitivos (string, int, bool, float, array, object) para evitar resolverlos
-- Maneja tres escenarios de constructor: con parámetros, vacío, no existe
-- `ContainerConfig` es método estático (no instanciable) — agrupa la configuración de bindings
+- **Resolución de parámetros — invariante: exactamente un valor por parámetro** (nunca saltar uno, porque `newInstanceArgs()` es posicional y desalinearía todo). Cascada:
+  1. Tipo declarado + `ReflectionNamedType` + no builtin → resolver del container
+  2. ¿Tiene valor por defecto? → usarlo
+  3. ¿Acepta null? → null
+  4. Si no → excepción nombrando el parámetro y la clase
+- **Detección de dependencias circulares:** `$inProgress[$targetClass]` marca lo que está a medio construir (el caché `$instances` no sirve — se escribe después del constructor). Se limpia con `unset()` en un `finally`, para que sobreviva a excepciones. Se marca antes del `if(is_callable)` para cubrir también los bindings callable, que reciben `$this` y pueden recursar
+- La key del rastreo es `$targetClass` y no `$implementation`, porque `$implementation` puede ser un Closure y un objeto no sirve como key de array
+- Config dividida por bounded context: `SharedContainerConfig` + `AuthContainerConfig`, ambas con método estático `register(Container $c)`
 - `EnvironmentLoader` carga `.env` con `putenv()`, filtra comentarios (#) y líneas vacías
 - PDO requiere `\PDO` (backslash) para referir clase global, no namespace de app
 

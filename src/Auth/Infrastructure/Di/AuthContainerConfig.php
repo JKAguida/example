@@ -3,11 +3,6 @@
 namespace App\Auth\Infrastructure\Di;
 use App\Shared\Infrastructure\Di\Container;
 
-use App\Auth\Infrastructure\Controllers\RegisterController;
-use App\Auth\Application\UseCase\RegisterUser;
-use App\Auth\Application\Service\CreateUserService;
-use App\Auth\Domain\Service\VerifyEmailExist; 
-use App\Auth\Infrastructure\EventListener\SendEmailConfirmation; 
 
 use App\Auth\Domain\Repository\UserRepositoryInterface; 
 use App\Auth\Infrastructure\Persistence\UserRepository;
@@ -20,49 +15,14 @@ use App\Auth\Infrastructure\Persistence\UserRoleRepository;
 use App\Auth\Domain\Service\PasswordHashInterface;
 use App\Auth\Infrastructure\Security\PasswordHash;
 
-use App\Auth\Infrastructure\Controllers\AccountConfirmController;
-use App\Auth\Application\UseCase\AccountConfirm;
-
-use App\Auth\Infrastructure\Controllers\LoginController;
-use App\Auth\Application\UseCase\Login;
 use App\Auth\Application\Security\TokenGeneratorInterface;
 use App\Auth\Infrastructure\Security\JWTGenerate;
 use App\Auth\Domain\Repository\RefreshTokenRepositoryInterface;
 use App\Auth\Infrastructure\Persistence\RefreshTokenRepository;
 
-use App\Auth\Infrastructure\Controllers\RefreshController;
-use App\Auth\Application\UseCase\Refresh;
-
-use App\Auth\Infrastructure\Controllers\LogoutController;
-use App\Auth\Application\UseCase\Logout;
-
-use App\Auth\Infrastructure\Controllers\LogoutAllController;
-use App\Auth\Application\UseCase\LogoutAll;
-
-use App\Auth\Infrastructure\Controllers\PasswordRecoveryController;
-use App\Auth\Application\UseCase\PasswordRecovery;
-use App\Auth\Infrastructure\EventListener\SendPasswordRecoveryEmail;
-
-use App\Auth\Infrastructure\Controllers\VerifyResetPasswordTokenController;
-use App\Auth\Application\UseCase\VerifyResetPasswordToken;
-
-use App\Auth\Infrastructure\Controllers\ResetPasswordController;
-use App\Auth\Application\UseCase\ResetPassword;
-
-use App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController;
-use App\Auth\Application\UseCase\ResendConfirmationAccountToken;
-use App\Auth\Infrastructure\EventListener\ResendEmailConfirmationToken;
-
-
 use App\Auth\Application\Security\TokenValidatorInterface;
 use App\Auth\Infrastructure\Security\JWTVerify;
 
-use App\Auth\Application\UseCase\CreateAdminUser;
-
-use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
-
-use App\Auth\Infrastructure\Controllers\RegisterUserWithRoleController;
-use App\Auth\Application\UseCase\RegisterUserWithRole;
 
 
 
@@ -75,53 +35,12 @@ final class AuthContainerConfig {
         $publicKeyPath = $config['jwt']['public_key_path'];
 
         $classToInstance = [
-            RegisterController::class => RegisterController::class,
-            RegisterUser::class => RegisterUser::class,
-            CreateUserService::class => CreateUserService::class,
-            SendEmailConfirmation::class => SendEmailConfirmation::class,
             UserRepositoryInterface::class => UserRepository::class,
             RoleRepositoryInterface::class => RoleRepository::class,
             UserRoleRepositoryInterface::class => UserRoleRepository::class,
             VerificationTokenRepositoryInterface::class => VerificationTokenRepository::class,
             PasswordHashInterface::class => PasswordHash::class,
-            VerifyEmailExist::class => VerifyEmailExist::class,
-            
-            AccountConfirmController::class => AccountConfirmController::class,
-            AccountConfirm::class => AccountConfirm::class,
-
-            LoginController::class => LoginController::class,
-            Login::class => Login::class,
             RefreshTokenRepositoryInterface::class => RefreshTokenRepository::class,
-
-            RefreshController::class => RefreshController::class,
-            Refresh::class => Refresh::class,
-
-            LogoutController::class => LogoutController::class,
-            Logout::class => Logout::class,
-
-            LogoutAllController::class => LogoutAllController::class,
-            LogoutAll::class => LogoutAll::class,
-
-            PasswordRecoveryController::class => PasswordRecoveryController::class,
-            PasswordRecovery::class => PasswordRecovery::class,
-            SendPasswordRecoveryEmail::class => SendPasswordRecoveryEmail::class,
-
-            VerifyResetPasswordTokenController::class => VerifyResetPasswordTokenController::class,
-            VerifyResetPasswordToken::class => VerifyResetPasswordToken::class,
-
-            ResetPasswordController::class => ResetPasswordController::class,
-            ResetPassword::class => ResetPassword::class,
-
-            ResendConfirmationAccountTokenController::class => ResendConfirmationAccountTokenController::class,
-            ResendConfirmationAccountToken::class => ResendConfirmationAccountToken::class,
-            ResendEmailConfirmationToken::class => ResendEmailConfirmationToken::class,
-
-            CreateAdminUser::class => CreateAdminUser::class,
-            CheckAuthMiddleware::class => CheckAuthMiddleware::class,
-
-            RegisterUserWithRoleController::class => RegisterUserWithRoleController::class,
-            RegisterUserWithRole::class => RegisterUserWithRole::class,
-
             TokenGeneratorInterface::class => function() use($privateKeyPath) {
                 return new JWTGenerate(
                     $privateKeyPath

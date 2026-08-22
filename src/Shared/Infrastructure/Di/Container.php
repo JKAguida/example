@@ -7,6 +7,8 @@ use ReflectionNamedType;
 final class Container {
     private array $binds = [];
     private array $instances = [];
+    private array $inProgress = [];
+
 
     public function __construct(){}
 
@@ -29,42 +31,53 @@ final class Container {
             return $this->instances[$targetClass];
         }
 
-        if(is_callable($implementation)){
-            $this->instances[$targetClass] = $implementation($this);
-        }else{
-            if(!class_exists($implementation) && !interface_exists($implementation)) throw new \InvalidArgumentException("La clase no existe: ".$implementation);
-            
-            $reflection = new ReflectionClass($implementation);
-            if(!$reflection->isInstantiable()){
-                throw new \InvalidArgumentException("Falta registrar un binding para: ".$implementation);
-            }
-            $constructor = $reflection->getConstructor();
-            if($constructor){
-                $params = $constructor->getParameters();
-                if($params){
-                    foreach($params as $value){
-                        
-                        if($value->hasType()){
-                            $paramType = $value->getType();
-                            if($paramType instanceof ReflectionNamedType){
-                                $typeName = $paramType->getName();
-                                $isBuiltin = $paramType->isBuiltin();
+        if(isset($this->inProgress[$targetClass]) && $this->inProgress[$targetClass]){
+            throw new \InvalidArgumentException("La clase: ".$targetClass." ya se esta implementando");
+        }
+        $this->inProgress[$targetClass] = true;
 
-                                if (!$isBuiltin) {
-                                    $resolvedParams[] = $this->get($typeName);
-                                }
+        try{
+            if(is_callable($implementation)){
+                $this->instances[$targetClass] = $implementation($this);
+            }else{
+                if(!class_exists($implementation) && !interface_exists($implementation)) throw new \InvalidArgumentException("La clase no existe: ".$implementation);
+                
+                $reflection = new ReflectionClass($implementation);
+                if(!$reflection->isInstantiable()){
+                    throw new \InvalidArgumentException("Falta registrar un binding para: ".$implementation);
+                }
+
+                $constructor = $reflection->getConstructor();
+                if($constructor){
+                    $params = $constructor->getParameters();
+                    if($params){
+                        
+                        foreach($params as $value){
+                            if($value->hasType() && $value->getType() instanceof ReflectionNamedType && !$value->getType()->isBuiltin()){
+                                $paramType = $value->getType();
+                                $typeName = $paramType->getName();
+                                $resolvedParams[] = $this->get($typeName);
+                            }else if($value->isDefaultValueAvailable()){
+                                $resolvedParams[] = $value->getDefaultValue();
+                            }else if($value->allowsNull()){
+                                $resolvedParams[] = null;
+                            }else{
+                                throw new \InvalidArgumentException("No se pudo resolver el parámetro: ".$value->getName()." de la clase: ".$implementation);
                             }
                         }
+                        $this->instances[$targetClass] = $reflection->newInstanceArgs($resolvedParams);
+                    } else {
+                        $this->instances[$targetClass] = $reflection->newInstance();
                     }
-                    $this->instances[$targetClass] = $reflection->newInstanceArgs($resolvedParams);
-                } else {
-                    $this->instances[$targetClass] = $reflection->newInstance();
+                }else{
+                    $this->instances[$targetClass] = $reflection->newInstanceWithoutConstructor();
                 }
-            }else{
-                $this->instances[$targetClass] = $reflection->newInstanceWithoutConstructor();
             }
+            return $this->instances[$targetClass];
+        }finally{
+            unset($this->inProgress[$targetClass]);
         }
-        return $this->instances[$targetClass];
+
     }
 
     public function bind(string $interface, string | callable $implementation){
