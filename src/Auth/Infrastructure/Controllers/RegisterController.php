@@ -5,15 +5,17 @@ use App\Auth\Application\DTO\RegisterUserRequestDTO;
 use App\Auth\Application\UseCase\RegisterUser;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
+use App\Shared\Infrastructure\Http\Request;
 
 
 final class RegisterController{
     public function __construct(
         private readonly RegisterUser $registerUser,
+        private readonly Request $req
     ){}    
 
     public function execute():void{
-        $data = json_decode(file_get_contents('php://input'),true);
+        $data = $this->req->body();
         PayloadValidator::validate($data,['userName','lastName','email','rawPassword']);
         $registerUserRequestDTO = new RegisterUserRequestDTO(
             $data['userName'],

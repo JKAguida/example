@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Auth\Infrastructure\EventDispatcher;
+namespace App\Shared\Infrastructure\EventDispatcher;
 use App\Shared\Application\Port\EventDispatcherInterface;
 use App\Shared\Domain\Event\DomainEventInterface;
 use App\Shared\Application\Port\EventListenerInterface;

@@ -43,7 +43,8 @@ final class Login {
             // Generar el refresh token
             $refreshToken = RefreshToken::generate(
                 $userExist->userId(),
-                $data->userAgent()
+                $data->userAgent(),
+                $data->ip()
             );
             // Persistir el refresh token
             $this->refreshTokenRepository->save($refreshToken);

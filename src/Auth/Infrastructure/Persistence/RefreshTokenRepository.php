@@ -20,10 +20,11 @@ final class RefreshTokenRepository implements RefreshTokenRepositoryInterface {
             "tokenValue"=>$refreshToken->tokenValue()->value(),
             "refreshTokenExpiration"=>$refreshToken->refreshTokenExpiration()->value()->format("Y-m-d H:i:s"),
             "userId"=>$refreshToken->userId()->value(),
-            "userAgent"=>$refreshToken->userAgent()
+            "userAgent"=>$refreshToken->userAgent(),
+            "ip"=>$refreshToken->ip(),
         ];
-        $sql = "INSERT INTO refresh_tokens (tokenId, tokenValue, refreshTokenExpiration, userId, userAgent)
-                VALUES (:tokenId, :tokenValue, :refreshTokenExpiration, :userId, :userAgent)";
+        $sql = "INSERT INTO refresh_tokens (tokenId, tokenValue, refreshTokenExpiration, userId, userAgent, ip)
+                VALUES (:tokenId, :tokenValue, :refreshTokenExpiration, :userId, :userAgent, :ip)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($data);
     }
@@ -67,7 +68,8 @@ final class RefreshTokenRepository implements RefreshTokenRepositoryInterface {
             TokenValue::fromString($refreshToken["tokenValue"]),
             RefreshTokenExpiration::fromString($refreshToken["refreshTokenExpiration"]),
             UserId::fromString($refreshToken["userId"]),
-            $refreshToken["userAgent"]
+            $refreshToken["userAgent"],
+            $refreshToken["ip"]
         );
     }
 }

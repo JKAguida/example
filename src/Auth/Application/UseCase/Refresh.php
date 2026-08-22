@@ -21,7 +21,7 @@ final class Refresh {
         private readonly CookieManagerInterface $cookieManager
     ) {}
 
-    public function refresh(string $userAgent): LoginResponseDTO {
+    public function refresh(string $userAgent,string $ip): LoginResponseDTO {
         $strRefresTokenValue = $this->cookieManager->get('refreshTokenJKApp');
         if(!$strRefresTokenValue) throw new InvalidTokenException();
         $oldRefreshToken = $this->refreshTokenRepository->findByTokenValue(TokenValue::fromString($strRefresTokenValue));
@@ -29,7 +29,7 @@ final class Refresh {
         if($oldRefreshToken->isExpired()) throw new TokenExpiredException("El token ha expirado");
         
         $nwAccessToken = $this->tokenGenerator->generate($oldRefreshToken->userId());
-        $nwRefreshToken = RefreshToken::generate($oldRefreshToken->userId(),$userAgent);
+        $nwRefreshToken = RefreshToken::generate($oldRefreshToken->userId(),$userAgent,$ip);
 
         $this->transactionManager->begin();
         try {

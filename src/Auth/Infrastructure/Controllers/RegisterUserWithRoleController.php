@@ -7,21 +7,19 @@ use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Auth\Domain\ValueObject\UserId;
 use App\Auth\Domain\ValueObject\RoleType;
-use App\Auth\Infrastructure\Middleware\AuthControllerContextInterface;
-use  App\Shared\Domain\Exception\InvalidInputException;
+use App\Shared\Infrastructure\Middleware\RequiresAuthenticationInterface;
+use App\Shared\Domain\Exception\InvalidInputException;
+use App\Shared\Infrastructure\Http\Request;
 
-
-
-
-final class RegisterUserWithRoleController implements AuthControllerContextInterface{
-    private readonly UserId $userId;
+final class RegisterUserWithRoleController implements RequiresAuthenticationInterface{
 
     public function __construct(
         private readonly RegisterUserWithRole $registerUser,
+        private readonly Request $req
     ){}    
 
     public function execute():void{
-        $data = json_decode(file_get_contents('php://input'),true);
+        $data = $this->req->body();
         PayloadValidator::validate($data,['userName','lastName','email','rawPassword','roleType']);
         $registerUserRequestDTO = new RegisterUserRequestDTO(
             $data['userName'],
@@ -33,7 +31,7 @@ final class RegisterUserWithRoleController implements AuthControllerContextInter
         $roleType = RoleType::tryFrom($data['roleType']);
         if(!$roleType) throw new InvalidInputException("El rol solicitado no es válido");
         
-        $this->registerUser->execute($registerUserRequestDTO,$roleType,$this->userId);
+        $this->registerUser->execute($registerUserRequestDTO,$roleType,UserId::fromString($this->req->userId()));
         $response = new Response(
             msg: 'Usuario registrado, confirme su cuenta vía email.',
             status_code:201
@@ -41,7 +39,5 @@ final class RegisterUserWithRoleController implements AuthControllerContextInter
         $response->send();
     }
 
-    public function setUserId(UserId $userId):void{
-        $this->userId = $userId;
-    }
+    
 }
