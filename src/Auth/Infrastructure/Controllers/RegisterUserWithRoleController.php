@@ -7,11 +7,11 @@ use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Auth\Domain\ValueObject\UserId;
 use App\Auth\Domain\ValueObject\RoleType;
-use App\Auth\Infrastructure\Middleware\AuthControllerContextInterface;
-use  App\Shared\Domain\Exception\InvalidInputException;
+use App\Shared\Infrastructure\Middleware\RequiresAuthenticationInterface;
+use App\Shared\Domain\Exception\InvalidInputException;
 use App\Shared\Infrastructure\Http\Request;
 
-final class RegisterUserWithRoleController implements AuthControllerContextInterface{
+final class RegisterUserWithRoleController implements RequiresAuthenticationInterface{
 
     public function __construct(
         private readonly RegisterUserWithRole $registerUser,

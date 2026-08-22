@@ -14,7 +14,7 @@ use App\Auth\Infrastructure\EventListener\SendPasswordRecoveryEmail;
 use App\Auth\Domain\Events\ConfirmationTokenResent;
 use App\Auth\Infrastructure\EventListener\ResendEmailConfirmationToken;
 use App\Shared\Application\Port\EventDispatcherInterface;
-use App\Auth\Infrastructure\Middleware\AuthControllerContextInterface;
+use App\Shared\Infrastructure\Middleware\RequiresAuthenticationInterface;
 use App\Shared\Infrastructure\Exception\BadConfigurationException;
 use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
 use App\Shared\Infrastructure\Http\Request;
@@ -42,7 +42,7 @@ try {
 
     $instance = $container->get($controller_data['controller']);
 
-    if($instance instanceof AuthControllerContextInterface && !$req->userId()){
+    if($instance instanceof RequiresAuthenticationInterface && !$req->userId()){
         throw new BadConfigurationException("Parece que no ha sido declarado el middleware en la ruta de este controlador. ".$controller_data['controller']);
     }
     
