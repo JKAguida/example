@@ -7,197 +7,180 @@ Personal PHP web app to practice hexagonal architecture + DDD.
 - Password manager (sensitive!)
 
 **Why:** Learning exercise. Priorities: architecture correctness first, then OWASP security.
+Motivación real: migrar un proyecto laboral existente de "código espagueti" a hexagonal + DDD. Por eso Auth se quiere production-ready, no de juguete.
 
 **How to apply:** Treat every feature as a teaching opportunity. Push the user to identify bounded contexts, ports, adapters, and domain entities themselves before confirming.
 
 ---
 
-## Progreso actual (2026-07-04)
+## Estado (2026-08-22)
 
-### Backend
-### Bounded Context: Auth — Domain COMPLETO ✓
-### Application layer — COMPLETO ✓
-### Infrastructure layer — COMPLETO ✓
-### Shared Infrastructure — DI Container COMPLETO ✓
-### Shared Infrastructure — Bootstrap + EnvironmentLoader COMPLETO ✓
-### HTTP Routing — COMPLETO ✓
-### Flujo HTTP end-to-end (Request → Router → DI → Controller → DB → Events → Email) — FUNCIONAL ✓
+**Bounded Context Auth — TERMINADO.** Identidad, roles y autorización completos, con frontend funcionando end-to-end.
 
-### Frontend
-### Arquitectura — EN PROGRESO (modular por bounded context)
-### Auth/Register — HTML COMPLETO ✓, CSS EN PROGRESO
+```
+Registro + confirmación por email + reenvío     ✓
+Login (rehash silencioso, cuenta verificada)     ✓
+Logout / LogoutAll (idempotente, por cookie)     ✓
+Refresh con rotación de token                    ✓
+Recuperación y cambio de contraseña              ✓
+Roles: entidades, repos, seed y CLI de admin     ✓
+Verificación de JWT + middleware de auth         ✓
+RegisterUserWithRole (admin crea usuarios)       ✓
+Interceptor 401 en el frontend                   ✓
+```
+
+**Siguiente bounded context:** Training (rutinas de ejercicio + progreso).
+
+---
+
+## Mapa de la arquitectura
 
 ```
 src/
-  Shared/Domain/ValueObject/UUIDv7.php                              ✓
-  Shared/Domain/Event/DomainEventInterface.php                      ✓
-  Auth/Domain/ValueObject/UserId.php                                ✓
-  Auth/Domain/ValueObject/Email.php                                 ✓
-  Auth/Domain/ValueObject/RawPassword.php                           ✓ (fromString() para login sin validar longitud)
-  Auth/Domain/ValueObject/Password.php                              ✓
-  Auth/Domain/ValueObject/UserName.php                              ✓
-  Auth/Domain/ValueObject/LastName.php                              ✓
-  Auth/Domain/ValueObject/TokenId.php                               ✓ (método: generate())
-  Auth/Domain/ValueObject/TokenValue.php                            ✓
-  Auth/Domain/ValueObject/TokenExpiration.php                       ✓ (30 min, con fromString() para DB)
-  Auth/Domain/ValueObject/TokenType.php (enum)                      ✓
-  Auth/Domain/ValueObject/RefreshTokenExpiration.php                ✓ (7 días, con fromString() para DB)
-  Auth/Domain/Entity/User.php                                       ✓
-  Auth/Domain/Entity/VerificationToken.php                          ✓
-  Auth/Domain/Entity/RefreshToken.php                               ✓ (con userAgent)
-  Auth/Domain/Repository/UserRepositoryInterface.php                ✓
-  Auth/Domain/Repository/VerificationTokenRepositoryInterface.php   ✓ (+ deleteAllByTokenType, findByTokenTypeAndUserId)
-  Auth/Domain/Repository/RefreshTokenRepositoryInterface.php        ✓ (save, findByTokenValue, delete, deleteAll)
-  Auth/Domain/Service/PasswordHashInterface.php                     ✓ (+ needsRehash)
-  Auth/Domain/Service/VerifyEmailExist.php                          ✓
-  Auth/Domain/Events/UserRegistered.php                             ✓
-  Auth/Domain/Events/PasswordRecoveryRequested.php                  ✓
-  Auth/Domain/Exception/EmailAlreadyExistsException.php             ✓
-  Auth/Domain/Exception/InvalidCredentialsException.php             ✓
-  Auth/Domain/Exception/InvalidTokenException.php                   ✓
+  Shared/
+    Domain/           UUIDv7, DomainEventInterface, excepciones compartidas,
+                      ExceptionContextInterface
+    Application/Port/ Mailer, EventDispatcher, TransactionManager, CookieManager
+    Infrastructure/   Http (Request, Response, HandlerExceptions, PayloadValidator,
+                        CookieManager, excepciones HTTP)
+                      Di (Container, ContainerConfig, SharedContainerConfig)
+                      Router, Mailer, Persistence, EventDispatcher, Bootstrap,
+                      Middleware (CORS, RequiresAuthenticationInterface), Exception
+  Auth/
+    Domain/           User, VerificationToken, RefreshToken, Role + sus VOs,
+                      repositorios (interfaces), servicios de dominio, eventos,
+                      excepciones de dominio
+    Application/      UseCase (11), Service (CreateUserService), DTO,
+                      Security (TokenGenerator/TokenValidator + excepciones)
+    Infrastructure/   Controllers (11), Persistence, Security (JWT, Argon2id),
+                      EventListener, Router, Middleware, Di
 
-  Shared/Application/Port/EventDispatcherInterface.php              ✓
-  Shared/Application/Port/TransactionManagerInterface.php           ✓
-  Shared/Application/Port/MailerInterface.php                       ✓ (send(MailDTO): void)
-  Shared/Application/DTO/MailDTO.php                                ✓ (recipients array, subject, messageBody)
-  Auth/Application/UseCase/RegisterUser.php                         ✓
-  Auth/Application/UseCase/AccountConfirm.php                       ✓
-  Auth/Application/UseCase/Login.php                                ✓ (genera access + refresh token, needsRehash)
-  Auth/Application/UseCase/Logout.php                               ✓
-  Auth/Application/UseCase/LogoutAll.php                            ✓
-  Auth/Application/UseCase/Refresh.php                              ✓ (token rotation)
-  Auth/Application/UseCase/PasswordRecovery.php                     ✓ (Fase 1 — solicitar recuperación)
-  Auth/Application/UseCase/ResetPassword.php                        ✓ (Fase 2 — cambiar contraseña)
-  Auth/Application/DTO/RegisterUserRequestDTO.php                   ✓
-  Auth/Application/DTO/LoginRequestDTO.php                          ✓ (incluye userAgent)
-  Auth/Application/DTO/LoginResponseDTO.php                         ✓ (accessToken + refreshToken)
-  Auth/Application/Security/TokenGeneratorInterface.php             ✓
-  Auth/Infrastructure/Security/PasswordHash.php                     ✓ (Argon2id, needsRehash)
-  Auth/Infrastructure/Security/JWTGenerate.php                      ✓ (RS256, firebase/php-jwt)
-  Auth/Infrastructure/Persistence/UserRepository.php                ✓ (PDO MySQL, UPSERT)
-  Auth/Infrastructure/Persistence/VerificationTokenRepository.php   ✓
-  Auth/Infrastructure/Persistence/RefreshTokenRepository.php        ✓
-  Shared/Application/Port/EventListenerInterface.php                ✓
-  Auth/Infrastructure/Http/Controllers/                             pendiente
-  Auth/Infrastructure/EventDispatcher/EventDispatcher.php          ✓
-  Auth/Infrastructure/Http/Controllers/RegisterController.php       ✓
-  Auth/Infrastructure/Http/Controllers/AccountConfirmController.php ✓
-  Auth/Infrastructure/Http/Controllers/LoginController.php          ✓
-  Auth/Infrastructure/Http/Controllers/LogoutController.php         ✓
-  Auth/Infrastructure/Http/Controllers/LogoutAllController.php      ✓
-  Auth/Infrastructure/Http/Controllers/RefreshController.php        ✓
-  Auth/Infrastructure/Http/Controllers/PasswordRecoveryController.php ✓
-  Auth/Infrastructure/Http/Controllers/ResetPasswordController.php  ✓
-  Shared/Infrastructure/Http/Response.php                          ✓
-  Auth/Infrastructure/EventListener/SendEmailConfirmation.php       pendiente
-  Shared/Infrastructure/Mailer/SmtpMailer.php                       ✓ (PHPMailer, STARTTLS, try/finally para smtpClose)
-  Auth/Infrastructure/EventListener/SendEmailConfirmation.php       ✓
-  Shared/Infrastructure/Di/Container.php                            ✓ (autowiring + singleton + detección de ciclos)
-  Shared/Infrastructure/Di/SharedContainerConfig.php                ✓ (puertos de Shared: PDO, Mailer, Cookie, Request…)
-  Auth/Infrastructure/Di/AuthContainerConfig.php                    ✓ (puertos de Auth: repos, PasswordHash, JWT)
-  Shared/Infrastructure/Bootstrap/EnvironmentLoader.php             ✓ (carga .env con putenv)
-  public/index.php                                                  ✓ (bootstrap principal, date_default_timezone_set UTC)
-  Shared/Infrastructure/Router/Router.php                           ✓ (orquestador de rutas por bounded context)
-  Auth/Infrastructure/Router/AuthRouter.php                         ✓ (rutas específicas de Auth)
-  database/migrations/
-    001_create_users_table.sql                                      ✓
-    002_create_verification_tokens.sql                              ✓
-    003_create_refresh_tokens.sql                                   ✓
-  
-  frontend/
-    shared/
-      app.css                                                       ✓ (reset CSS, 1rem = 10px, box-sizing border-box)
-      api.js                                                        (en progreso)
-      utils.js                                                      (en progreso)
-    Auth/Register/
-      register.html                                                 ✓ (formulario con BEM, campos de registro)
-      register.js                                                   (pendiente)
-      register.css                                                  (en progreso — mobile-first, BEM)
-    Auth/Login/
-      (pendiente)
-    Training/
-      (pendiente)
-    Finance/
-      (pendiente)
+public/index.php      bootstrap HTTP
+bin/cli.php           bootstrap CLI (seed-roles, create-admin)
+database/migrations/  006 archivos SQL
+frontend/             Auth/{Register,Login,...} + shared/{api,toast,validations}
 ```
 
-### Decisiones de diseño tomadas
+---
+
+## Decisiones de diseño
+
+### Dominio
 - `PasswordHashInterface` en `Auth/Domain/Service/` (invariante de dominio)
-- `TokenGeneratorInterface` en `Auth/Application/Security/` (decisión técnica — JWT es infraestructura)
-- `RawPassword::create()` valida longitud mínima 8 chars (registro). `fromString()` sin validación (login — no revelar política de contraseñas)
-- `Password` VO almacena hash, sin equals() — verificación via `PasswordHashInterface::verify()`
-- `VerificationToken::create()` genera TokenId/TokenValue/TokenExpiration internamente
-- `RefreshToken` es entidad separada de `VerificationToken` (ciclos de vida diferentes)
-- `RefreshToken` almacena `userAgent` para identificar dispositivo
-- `User::register()` recibe `UserId` desde el Use Case (idempotencia)
-- DTOs: uno por caso de uso, sin DTO cuando el Use Case recibe un solo parámetro
-- Domain Event Recording: `User` tiene `$domainEvents[]` + `pullDomainEvents()`
-- Timestamps en User: `DateTimeImmutable` primitivo, no VO
-- Transacciones via `TransactionManagerInterface` port en `Shared/Application/Port/`
-- Eventos se despachan DESPUÉS del commit (fuera de la transacción)
-- El repositorio reconstituye entidades — el Use Case nunca llama a `reconstitute()` directamente
-- Repositorios tienen método privado `self::reconstitute()` para evitar duplicación
-- `isVerified` se guarda como int (0/1) en MySQL, se castea a bool al reconstituir
-- `TokenExpiration::isExpired()` retorna bool (CQS), el caller lanza la excepción
-- JWT payload contiene `sub` (UserId) + `exp` como Unix timestamp (OWASP — mínimo PII)
-- JWT firmado con RS256 (asimétrico — clave pública compartible con terceros)
-- Token rotation implementado: al renovar, se elimina el refresh token viejo y se genera uno nuevo
-- `needsRehash()` en `PasswordHashInterface` — Login rehashea silenciosamente, fallo no rompe el login
-- Login: mensaje específico "cuenta no confirmada" (UX > OWASP estricto en este caso)
-- `InvalidTokenException` en `Auth/Domain/Exception/` (es regla de dominio, no de aplicación)
-- `DomainEventInterface` en `Shared/Domain/Event/` (no es un port — no conecta con infraestructura)
-- `UserRegistered` evento: eventId (string) y occurredAt (DateTimeImmutable) generados internamente
-- `PasswordRecoveryRequested` evento despachado desde Use Case (no entidad — entidad no conoce tokens)
-- `PasswordRecovery` (Fase 1): retorno silencioso si email no existe (OWASP — evitar user enumeration)
-- `PasswordRecovery` (Fase 1): borra tokens previos del mismo tipo antes de crear el nuevo
-- `ResetPassword` (Fase 2): valida tokenType + expiración, borra token + todas las sesiones activas
-- `MailDTO` con `array $recipients` para soportar múltiples destinatarios
-- `EventDispatcherInterface` y `TransactionManagerInterface` en `Shared/Application/Port/`
-- Experimento planeado: usar MySQL en un equipo y PostgreSQL en otro para validar la arquitectura hexagonal
-- **Zona horaria:** `date_default_timezone_set('UTC')` en bootstrap — aplicación + BD siempre en UTC
-- **Variables de entorno:** `.env` con valores entrecomillados para valores con espacios (ej: SMTP_PASSWORD="xxxx xxxx xxxx xxxx")
-- **Listeners de eventos:** Se registran en bootstrap via `EventDispatcher::addListener()` ANTES de ejecutar el controlador
-- **Credenciales Gmail:** Requiere App Password (no contraseña de cuenta), generar en https://myaccount.google.com/apppasswords
+- `TokenGeneratorInterface` / `TokenValidatorInterface` en `Auth/Application/Security/` — JWT es infraestructura
+- `RawPassword::create()` valida 8 chars; `fromString()` sin validación (login, no revelar política)
+- `RefreshToken` entidad separada de `VerificationToken` (ciclos de vida distintos); guarda userAgent e ip
+- `User::register()` recibe el `UserId` desde el Use Case (idempotencia)
+- Domain events: `User` acumula en `$domainEvents[]`, el llamador hace `pullDomainEvents()`
+- `VerificationToken::ensureTokenValid(TokenType)` — la entidad hace cumplir su invariante.
+  **Orden: tipo antes que expiración**, porque `TOKEN_EXPIRED` es una fuga aceptada a propósito y
+  solo tiene sentido revelarla si el token era del flujo correcto
+- `RefreshToken` se validó inline (1 llamador, 1 chequeo): consolidar sin duplicación es ceremonia
 
-### Frontend Architecture (HTML/CSS/JS)
-- Arquitectura modular por **bounded context** (Auth, Training, Finance, Shared)
-- Cada bounded context contiene **módulos por vista/caso de uso** (Register, Login, etc.)
-- Cada módulo = carpeta con: `module.html`, `module.js`, `module.css`
-- **Shared bounded context** para código reutilizable: `api.js`, `utils.js`, `app.css`
-- **Estado compartido** via `LocalStorage` (entre módulos del mismo BC)
-- **Frontend independiente:** HTML puro + Vanilla JS (no frameworks aún)
-- **Separación por puerto:** Backend en `localhost:8000`, Frontend en `localhost:3000`
-- **Consumo de API:** Fetch desde `shared/api.js` centralizando llamadas HTTP
-- **Sin PHP en frontend:** HTML se ejecuta en navegador, PHP solo en backend
-- **BEM para CSS:** Block__Element--Modifier (escalable, mantenible)
-- **Mobile-first:** Estilos base para mobile, media queries para tablet/desktop
-- **CSS Reset:** `box-sizing: border-box`, `1rem = 10px`, margin/padding reset
-- **Próximo paso:** Aprender Vanilla JS 3-4 semanas, luego React
+### Aplicación
+- DTOs: uno por caso de uso; sin DTO cuando recibe un solo parámetro
+- **Los casos de uso no se componen entre sí.** Cada uno es dueño de su transacción y sus eventos.
+  Para compartir lógica se extrae un colaborador (`CreateUserService`) que **no** abre transacción,
+  **no** despacha eventos, y **devuelve** lo que creó
+- `CreateUserService` asigna siempre `RoleType::User` → invariante "todo usuario tiene rol base",
+  imposible de saltarse desde cualquier punto de entrada
+- Transacciones vía `TransactionManagerInterface`; eventos y cookies **después** del commit
+  (son efectos irreversibles)
+- El repositorio reconstituye entidades; el Use Case nunca llama a `reconstitute()`
 
-### Container de Inyección de Dependencias
-- **`Container` usa autowiring** — si una clase no tiene binding registrado, se instancia a sí misma vía Reflection. Solo se registran las decisiones reales: puerto → adaptador, y callables que necesitan configuración (rutas de llaves, credenciales)
-- `$targetClass` (clave de instancias) siempre es `$requiredClass` para unicidad
-- `$implementation` es lo que se instancia (string de clase o callable)
-- Singletons: una instancia por clave, compartida globalmente
-- Resolución recursiva: si una clase depende de otra, la resuelve automáticamente
-- Usa Reflection para inspeccionar constructores e inyectar dependencias
-- **Resolución de parámetros — invariante: exactamente un valor por parámetro** (nunca saltar uno, porque `newInstanceArgs()` es posicional y desalinearía todo). Cascada:
-  1. Tipo declarado + `ReflectionNamedType` + no builtin → resolver del container
-  2. ¿Tiene valor por defecto? → usarlo
-  3. ¿Acepta null? → null
-  4. Si no → excepción nombrando el parámetro y la clase
-- **Detección de dependencias circulares:** `$inProgress[$targetClass]` marca lo que está a medio construir (el caché `$instances` no sirve — se escribe después del constructor). Se limpia con `unset()` en un `finally`, para que sobreviva a excepciones. Se marca antes del `if(is_callable)` para cubrir también los bindings callable, que reciben `$this` y pueden recursar
-- La key del rastreo es `$targetClass` y no `$implementation`, porque `$implementation` puede ser un Closure y un objeto no sirve como key de array
-- Config dividida por bounded context: `SharedContainerConfig` + `AuthContainerConfig`, ambas con método estático `register(Container $c)`
-- `EnvironmentLoader` carga `.env` con `putenv()`, filtra comentarios (#) y líneas vacías
-- PDO requiere `\PDO` (backslash) para referir clase global, no namespace de app
+### Manejo de errores
+Tabla de decisión: cada situación → status + código + mensaje al cliente. El número de salidas
+distintas determinó cuántas excepciones crear.
 
-### HTTP Routing (COMPLETO)
-- Router principal (`Shared/Infrastructure/Router/Router.php`) orquestador
-- Un Router por bounded context (`Auth/Infrastructure/Router/AuthRouter.php`, etc.)
-- Identifica bounded context por primera parte del path: `/auth/register` → `auth`
-- Array de rutas por método HTTP (GET, POST) y path → controlador (string, no instancia)
-- Delega a routers específicos para resolver controladores
-- Bootstrap limpia path de query strings antes de routear
-- Controllers se instancian via Container (con todas sus dependencias resueltas)
-- Controllers ejecutan método `execute()` que retorna void (lógica en Use Case)
+| Situación | status | code |
+|---|---|---|
+| access token vencido | 401 | ACCESS_TOKEN_EXPIRED |
+| token de verificación vencido | 401 | TOKEN_EXPIRED |
+| token no existe / tipo incorrecto | 401 | TOKEN_INVALID (colapsados por OWASP) |
+| credenciales malas | 401 | BAD_CREDENTIALS |
+| cuenta sin verificar | 401 | NOT_VERIFIED |
+| email ya registrado | 409 | UNIQUE_EXCEPTION |
+| payload incompleto | 400 | INCOMPLETE_PAYLOAD (+ campos en `data`) |
+| valor inválido del cliente | 400 | INVALID_INPUT |
+| ruta no encontrada | 404 | NOT_FOUND |
+| no autorizado | — | (NotAuthorizedException) |
+| dato corrupto / config / inesperado | 500 | genérico + log |
+
+Principios que sostienen esa tabla:
+- **Dos audiencias**: el mensaje de la excepción se escribe para el log (detalle máximo, con
+  `previous` encadenado); lo que ve el cliente lo decide el handler desde el mapa. En 5xx divergen siempre
+- **Diseñar desde el catch**, no desde el throw: la pregunta no es "qué salió mal" sino "cuántas
+  salidas distintas necesita el handler"
+- **Clasificar por origen del dato**: `Email::create($input)` es culpa del cliente (400);
+  `TokenExpiration::fromString($filaBD)` es dato corrupto (500). La convención `create()` vs
+  `fromString()` ya codificaba la distinción
+- **El front actúa sobre el `code`, muestra el `msg`.** Ramificar leyendo texto no es contrato
+- `ExceptionContextInterface` (en `Shared/Domain/`): el handler pregunta *"¿traes contexto?"* sin
+  conocer ninguna clase concreta. La **excepción** etiqueta sus datos (`['missingFields' => ...]`),
+  no el handler
+- Los adaptadores traducen las excepciones de sus librerías (`JWTVerify` no deja escapar Firebase)
+
+### HTTP
+- `Request` (`Shared/Infrastructure/Http/`) concentra toda lectura del entorno: método, ruta, body,
+  query, ip, userAgent, cabecera Authorization. Ningún controller toca superglobales
+- Mutable solo en `setUserId()` (lo puebla el middleware). Es singleton por petición vía el Container,
+  por eso middleware y controller comparten el objeto
+- `create()` desde superglobales / `reconstitute()` para pruebas — mismo patrón que las entidades
+- Controllers = adaptadores primarios: validar payload → traducir a DTO → invocar Use Case → responder.
+  Sin try/catch: las excepciones suben al handler del bootstrap
+- `PayloadValidator` valida **presencia**; los VOs validan **validez**
+- Rutas: `Router` orquestador + un router por bounded context. Cada ruta declara controlador y
+  `middlewares` (opción "opt-in"; ver deuda)
+- `RequiresAuthenticationInterface` (marcador, en Shared): el bootstrap avisa si un controller que
+  exige autenticación quedó en una ruta sin middleware
+
+### Autorización
+- Autorización **gruesa** (¿hay sesión?) en el middleware; **fina** (¿este usuario puede esto?) en el
+  caso de uso, porque depende de los datos
+- Los tres endpoints de sesión (Logout, LogoutAll, Refresh) derivan la identidad del refresh token en
+  cookie httpOnly. **Nunca de un id que mande el cliente** (así se cerró un IDOR en LogoutAll)
+- `RegisterUser` fija `RoleType::User` en su propio código, sin parámetro: un endpoint público no
+  debe tener ningún camino que otorgue privilegios
+- `RegisterUserWithRole` sí recibe el rol, pero verifica `hasRole(Admin)` del solicitante
+- Un admin lleva también el rol de usuario (redundancia en datos a cambio de comprobaciones simples)
+
+### Contenedor de DI
+- Config dividida: `ContainerConfig` orquesta; `SharedContainerConfig` (6 bindings transversales) y
+  `AuthContainerConfig`. `Shared` conoce que Auth existe, no sus 40 clases
+- **Auto-wiring**: lo no registrado se resuelve por Reflection. Solo se registran decisiones reales
+  (puerto → adaptador) y callables con configuración
+- Resolución de parámetros — invariante: **exactamente un valor por parámetro** (`newInstanceArgs`
+  es posicional). Cascada: tipo simple no nativo → resolver / valor por defecto / null si es nulable /
+  excepción nombrando clase y parámetro
+- `getName()` sobre `ReflectionNamedType`, no el cast: `__toString()` devuelve `"?Foo"` — sirve para
+  mostrar, no para buscar
+- `isInstantiable()` cubre interfaz, abstracta y constructor privado de una vez
+- Detección de ciclos con `$inProgress[]` limpiado en un `finally`; la clave es `$targetClass` porque
+  `$implementation` puede ser un Closure
+- Instancias cacheadas por petición (PHP es shared-nothing: no hay estado entre peticiones)
+
+### Infraestructura y operación
+- UTC en toda la app (`date_default_timezone_set` en ambos bootstraps) y en la BD
+- `.env` con valores entrecomillados si llevan espacios (App Password de Gmail)
+- Claves RSA fuera del repo (`*.pem` en `.gitignore`); la pública se **deriva** con
+  `openssl pkey -in private.pem -pubout`, nunca se copia el archivo
+- CLI en `bin/`, nunca en `public/` (raíz web). Contraseñas por entrada interactiva con eco apagado,
+  no por argumento (historial de shell y `ps aux`)
+- El CLI y los controllers invocan los mismos casos de uso: dos adaptadores primarios, un dominio
+- Experimento planeado: MySQL en un equipo y PostgreSQL en otro. Nota: las migraciones **ya no son
+  portables** (`ENGINE=InnoDB`, `UNIQUE KEY`) — la arquitectura aísla el dominio, no el SQL
+
+---
+
+## Deuda técnica conocida (decidida, no olvidada)
+
+- **Rutas opt-in (fail-open)**: una ruta nueva sin la llave `middlewares` queda pública. Se eligió
+  sabiendo el riesgo; la red parcial es `RequiresAuthenticationInterface`
+- **Timing enumeration** en Login, PasswordRecovery y ResendConfirmation: el camino "no existe" es
+  mucho más rápido que el que verifica contraseña o manda correo
+- **Correo síncrono dentro de la petición**: un SMTP caído tumba el registro. La salida es una cola
+- **`'refreshTokenJKApp'`** literal en 7 lugares
+- **Logs de depuración**: `[DEBUG_ORIGIN]` por request, 2 `console.log` en `api.js` (uno imprime el
+  access token). Se dejan a propósito durante el desarrollo
+- **Fugas aceptadas a propósito** (UX > OWASP estricto): `TOKEN_EXPIRED` y "cuenta no confirmada"
+  revelan que el token/la cuenta existen
