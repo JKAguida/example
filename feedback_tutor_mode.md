@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: 89365430-8857-4817-a289-9c4a6b4d58f7
-  updated: 2026-07-01
+  updated: 2026-08-22
 ---
 
 Do NOT write any code. Only guide, explain, and ask questions.
@@ -255,3 +255,66 @@ El usuario **cuestionó una recomendación mía con el razonamiento correcto** (
 - `'refreshTokenJKApp'` literal en 7 lugares
 - Logs de depuración: `[DEBUG_ORIGIN]` por request, 2 `console.log` en `api.js` (uno imprime el access token)
 - Backlog: timing enumeration, correo síncrono en la petición, clase `Request`
+
+---
+
+### Sesión 2026-08-22 (Middleware de auth, roles end-to-end, Container, interceptor 401)
+
+**Completado y probado (navegador + CLI):**
+
+- **CLI** (`bin/cli.php`): `seed-roles` y `create-admin`. Valida `php_sapi_name()==="cli"`, oculta contraseña con `stty -echo` en `try/finally`, usa STDERR y exit codes
+- **Roles end-to-end**: `RoleRepository` + `UserRoleRepository` (JOIN, no N+1), `CreateAdminUser`, `RegisterUserWithRole`, `CreateUserService` extraído para no duplicar entre use cases
+- **Middleware de autenticación**: rutas con metadata `{controller, middlewares}` estilo Express, `CheckAuthMiddleware`, `AuthControllerContextInterface` (luego renombrada `RequiresAuthenticationInterface`), `Request` con IP y userAgent
+- **Container**: autowiring, cascada de resolución de parámetros, detección de dependencias circulares
+- **Config DI dividida**: `SharedContainerConfig` + `AuthContainerConfig`, limpiadas a solo puerto→adaptador y callables (de ~50 bindings a 14)
+
+**Conceptos que el usuario derivó él mismo:**
+
+1. **El rol nunca viaja en el payload.** Un use case por intención (`RegisterUser` con rol hardcodeado, `RegisterUserWithRole` con validación de admin) en vez de un parámetro `roleType` que el cliente controle. Evita escalada de privilegios por mass assignment.
+2. **Dos datos, dos canales de confianza.** El DTO lleva lo del body (validable, desconfiable); el `UserId` del ejecutor viaja aparte porque viene del JWT verificado. Mezclarlos permitiría suplantación.
+3. **El use case se mantiene puro.** El `AuthContext` llega solo hasta el controller; de ahí el `UserId` pasa como parámetro. Por eso `CreateAdminUser` sigue corriendo desde `bin/cli.php`, donde no hay HTTP.
+4. **Middleware que falla lanzando.** Sin `next()`: la excepción sube al `HandlerExceptions` que ya existía. No hizo falta pipeline.
+5. **401 ≠ 403.** `ACCESS_TOKEN_EXPIRED` → refrescar y reintentar; `TOKEN_INVALID` → al login; `NOT_AUTHORIZED` → nunca reintentar. Sin esa distinción, el interceptor entraría en bucle infinito contra un error de permisos.
+6. **Validar el resultado, no la configuración.** Tres chequeos frágiles ("¿existe la key?", "¿está en el índice 0?", "¿es de tal clase?") se reemplazaron por uno solo después del bucle: *"¿el controller pedía un UserId y se quedó sin él?"*. Hay muchas formas de configurar mal una ruta; solo dos respuestas a la pregunta del resultado.
+7. **Frontera de confianza en `tryFrom()`.** Aplicó `tryFrom()` en los repositorios (dato propio de la BD) y se le explicó que ahí un valor inválido es **corrupción** → 500, no input inválido → 400. Revirtió y lo puso donde sí correspondía: el controller que recibe `roleType` del cliente.
+8. **Autowiring vs estricto.** Descubrió que al cambiar `throw` por fallback a `$targetClass` había abandonado el modo estricto sin darse cuenta. Decidió quedarse con autowiring, borró los ~30 `Foo::class => Foo::class` redundantes y actualizó `CLAUDE.md`. Razón: una lista que nada obliga a mantener se desactualiza y **miente**.
+
+**Patrón de error recurrente (nueva familia, 3 veces):** confundir qué tipo tiene una variable — `$instance['middlewares']` sobre un objeto, `$userData['roleType']` sobre un DTO, `instanceof` sobre un string de clase. Contramedida acordada: antes de escribir `[...]` o `instanceof`, preguntarse *"¿qué tengo aquí exactamente: string, array u objeto?"*.
+
+**Patrón de proceso detectado:** varias ediciones seguidas introdujeron regresiones en código que ya funcionaba (mover un bloque y perder un `else`, cambiar `$this->x` por `$x`), sin ejecutar nada entre una y otra. Acordado: **un cambio, una ejecución**.
+
+---
+
+## ▶️ RETOMAR AQUÍ: candado de concurrencia del refresh
+
+**Estado:** el interceptor 401 en `frontend/shared/api.js` **funciona** para peticiones secuenciales. Falta el candado y el guardia de reintento.
+
+**El problema:** tres peticiones simultáneas con el token expirado disparan tres `POST /auth/refresh`. Como `Refresh.php` hace **rotación de tokens** (borra el viejo), solo el primero funciona; los otros dos reciben `TOKEN_INVALID` y mandan al usuario al login.
+
+**Analogía que sí le hizo clic (usarla al retomar):** tres compañeros de casa se dan cuenta de que no hay tortillas. Sin coordinación salen los tres y vuelven con tres bolsas. Con una nota en el refri: el primero mira, **no hay nota**, la pega y sale; el segundo y el tercero miran, **sí hay nota**, y esperan; el primero vuelve, **quita la nota**, y los tres comen de la misma bolsa.
+
+**Estado del código:** ya existe `refreshInProgress` a nivel de módulo, se asigna y se limpia en un `finally`. **Falta el paso 1: nadie mira el refri.** No hay ningún `if` que lea la variable para decidir. Sin esa pregunta, la variable es decoración.
+
+**Los dos puntos que faltaban por entender:**
+- **Por qué la nota debe ser la promesa y no un booleano:** un `true` diría "alguien fue" pero no habría forma de enterarse de cuándo volvió. La promesa es la nota y el aviso de llegada a la vez — varios `await` sobre la misma promesa se resuelven juntos, con una sola petición HTTP.
+- **Quién es dueña de la variable:** hoy `fetchAPI` la crea y `refresh()` la limpia, partido entre dos funciones. `refresh()` debe ser dueña de las tres cosas (preguntar / crear / limpiar) y **no recibir parámetros**. Con esa forma, el `if` que falta aparece solo.
+
+**Trampa a recordar:** si nunca se limpia la variable, dentro de 15 minutos el token vuelve a expirar, el código se engancha a una promesa vieja ya resuelta con un token también vencido, y el usuario queda en un bucle silencioso.
+
+**Salida honesta ofrecida:** el candado es **opcional por ahora**. No existe todavía ninguna vista que dispare peticiones en paralelo (el dashboard no está hecho). Es válido hacer commit del interceptor tal como está y dejar el candado para cuando se construya la primera pantalla que lo necesite — decisión tomada con el problema entendido, no descuido.
+
+**Contexto emocional:** la sesión terminó con el usuario saturado ("creo que ya me saturé porque no comprendo la lógica"). No es falta de capacidad — es la parte más difícil de JS asíncrono, después de muchas horas. Al retomar: empezar por la analogía, no por el código.
+
+**Después del candado:**
+- Guardia de reintento (la recursión de `fetchAPI` en la línea 12 — protege contra desfase de reloj entre PHP y navegador)
+- `RoleMiddleware` (defensa en profundidad; la validación granular ya está en el use case)
+- Web Components: navbar con logout + primera vista protegida
+- Frontend para `/auth/create-user` (panel de admin)
+- Bounded context Training
+
+**Deuda anotada (decidida, no olvidada):**
+- **Doble rol:** `CreateUserService` asigna `user_role` por dentro, y los use cases asignan además el rol pedido. Un admin creado queda con dos filas en `user_roles`. El arreglo es uno solo: que `CreateUserService` no decida roles.
+- **`console.log` en `api.js`** (`[DEBUG - API]` y `[DEBUG - API - FORMATED]`) — el segundo imprime la respuesta completa.
+- **`error_log` de depuración** en `JWTVerify` (imprime la ruta de la llave pública en cada request) y en `CORSMiddleware`.
+- **El admin creado por CLI debe confirmar email** para poder hacer login. ¿Tiene sentido, si quien ejecutó el CLI ya probó tener acceso al servidor? Decisión de producto pendiente.
+- **`.htaccess` para Apache:** el header `Authorization` no llega a PHP por CGI/FastCGI sin `CGIPassAuth On` o `SetEnvIf Authorization`. Funciona en `php -S` y falla en el deploy. Anotarlo en el README junto a las llaves RSA.
