@@ -12,10 +12,11 @@ final class RefreshToken {
         private readonly TokenValue $tokenValue,
         private readonly RefreshTokenExpiration $refreshTokenExpiration,
         private readonly UserId $userId,
-        private readonly string $userAgent
+        private readonly string $userAgent,
+        private readonly string $ip
     ){}
 
-    public static function generate(UserId $userId,string $userAgent) : self {
+    public static function generate(UserId $userId,string $userAgent,string $ip) : self {
         $tokenId = TokenId::generate();
         $tokenValue = TokenValue::generate();
         $refreshTokenExpiration = RefreshTokenExpiration::generate();
@@ -24,7 +25,8 @@ final class RefreshToken {
             $tokenValue,
             $refreshTokenExpiration,
             $userId,
-            $userAgent
+            $userAgent,
+            $ip,
         );
     }
 
@@ -33,14 +35,16 @@ final class RefreshToken {
         TokenValue $tokenValue,
         RefreshTokenExpiration $refreshTokenExpiration,
         UserId $userId,
-        string $userAgent
+        string $userAgent,
+        string $ip
     ):self {
         return new self(
             $tokenId,
             $tokenValue,
             $refreshTokenExpiration,
             $userId,
-            $userAgent
+            $userAgent,
+            $ip
         );
     }
 
@@ -53,4 +57,5 @@ final class RefreshToken {
     public function refreshTokenExpiration(): RefreshTokenExpiration { return $this->refreshTokenExpiration; }
     public function userId(): UserId { return $this->userId; }
     public function userAgent(): string { return $this->userAgent; }
+    public function ip(): string { return $this->ip; }
 }

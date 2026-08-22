@@ -5,20 +5,23 @@ use App\Auth\Application\UseCase\Login;
 use App\Auth\Application\DTO\LoginRequestDTO;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
+use App\Shared\Infrastructure\Http\Request;
 
 
 final class LoginController {
     public function __construct(
-        private readonly Login $login
+        private readonly Login $login,
+        private readonly Request $req
     ){}
 
     public function execute(): void {
-        $data = json_decode(file_get_contents("php://input"),true);
+        $data = $this->req->body();
         PayloadValidator::validate($data,['email','rawPassword']);
         $loginDTO = new LoginRequestDTO(
             $data['email'],
             $data['rawPassword'],
-            $_SERVER['HTTP_USER_AGENT']
+            $this->req->userAgent(),
+            $this->req->ip()
         );
 
         $loginResponseDTO = $this->login->login($loginDTO);

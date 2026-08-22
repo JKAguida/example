@@ -17,12 +17,7 @@ use App\Shared\Application\Port\EventDispatcherInterface;
 use App\Auth\Infrastructure\Middleware\AuthControllerContextInterface;
 use App\Shared\Infrastructure\Exception\BadConfigurationException;
 use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
-
-
-
-$request_method = $_SERVER['REQUEST_METHOD'];
-$path = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'];
-$path_clean = explode('?',$path)[0];
+use App\Shared\Infrastructure\Http\Request;
 
 try {
     EnvironmentLoader::load();
@@ -35,30 +30,27 @@ try {
     $dispatcher->addListener(PasswordRecoveryRequested::class,$container->get(SendPasswordRecoveryEmail::class));
     $dispatcher->addListener(ConfirmationTokenResent::class,$container->get(ResendEmailConfirmationToken::class));
 
-    $controller_data = Router::resolve($request_method,$path_clean);
-    $instance = $container->get($controller_data['controller']);
-    
-    $userId = null;
+    $req = $container->get(Request::class);
+    $controller_data = Router::resolve($req->method(),$req->path());    
 
     if(isset($controller_data['middlewares'])){
         foreach($controller_data['middlewares'] as $value){
             $middleware = $container->get($value);
-            if($middleware instanceof CheckAuthMiddleware){
-                $userId = $middleware->execute();
-            }else{
-                $middleware->execute();
-            }
+            $middleware->execute();
         }
     }
 
-    if($instance instanceof AuthControllerContextInterface && !$userId){
+    $instance = $container->get($controller_data['controller']);
+
+    if($instance instanceof AuthControllerContextInterface && !$req->userId()){
         throw new BadConfigurationException("Parece que no ha sido declarado el middleware en la ruta de este controlador. ".$controller_data['controller']);
     }
-    if($instance instanceof AuthControllerContextInterface && $userId){
-        $instance->setUserId($userId);
-    }
+    
     $instance->execute();
 } catch (\Throwable $th) {
+    $request_method = $_SERVER['REQUEST_METHOD'];
+    $path = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'];
+    $path_clean = explode('?',$path)[0];
     $handler = new HandlerExceptions();
     $response = $handler->handle($th,$request_method,$path_clean);
     $response->send();

@@ -71,8 +71,7 @@ use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
 use App\Auth\Infrastructure\Controllers\RegisterUserWithRoleController;
 use App\Auth\Application\UseCase\RegisterUserWithRole;
 
-
-
+use App\Shared\Infrastructure\Http\Request;
 
 final class ContainerConfig {
     private function __construct() {}
@@ -133,6 +132,8 @@ final class ContainerConfig {
 
             RegisterUserWithRoleController::class => RegisterUserWithRoleController::class,
             RegisterUserWithRole::class => RegisterUserWithRole::class,
+
+            Request::class  =>  function () { return Request::create(); },
             
             \PDO::class => function(){ 
                 return new \PDO(

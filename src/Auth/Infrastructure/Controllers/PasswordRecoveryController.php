@@ -4,14 +4,17 @@ namespace App\Auth\Infrastructure\Controllers;
 use App\Auth\Application\UseCase\PasswordRecovery;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
+use App\Shared\Infrastructure\Http\Request;
+
 
 final class PasswordRecoveryController {
     public function __construct(
-        private readonly PasswordRecovery $passwordRecovery
+        private readonly PasswordRecovery $passwordRecovery,
+        private readonly Request $req
     ){}
 
     public function execute(): void {
-        $data = json_decode(file_get_contents('php://input'),true);
+        $data = $this->req->body();
         PayloadValidator::validate($data,['email']);
         
         $this->passwordRecovery->passwordRecoveryRequest($data['email']);
