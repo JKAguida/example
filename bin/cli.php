@@ -49,35 +49,35 @@ try {
             
 
             echo "Ingresa el nombre(s) del usuario:\n";
-            $userName = fgets(STDIN);
+            $userName = stdinIsCanceled();
             
 
             while (trim($userName)==="") {
                 echo "El nombre no puede ir vacío, vuelva a ingresar uno válido:\n";
-                $userName = fgets(STDIN);
+                $userName = stdinIsCanceled();
             }
             
             echo "Ingresa los apellidos del usuario:\n";
-            $lastName = fgets(STDIN);
+            $lastName = stdinIsCanceled();
 
             while (trim($lastName)==="") {
                 echo "El campo de los apelidos no puede ir vacío, vuelva a ingresar los valores:\n";
-                $lastName = fgets(STDIN);
+                $lastName = stdinIsCanceled();
             }
             
             
             $emailConfirm = false;
             do {
                 echo "Ingresa la dirección email del usuario:\n";
-                $email = fgets(STDIN);
+                $email = stdinIsCanceled();
 
                 while (trim($email)==="") {
                     echo "El email no puede ir vacío, vuelva a ingresar los valores:\n";
-                    $email = fgets(STDIN);
+                    $email = stdinIsCanceled();
                 }
 
                 echo "El email ingresado es: ".trim($email)."¿Es correcto? (Y/n)\n";
-                $confirmation = fgets(STDIN);
+                $confirmation = stdinIsCanceled();
 
                 if(trim($confirmation[0])!=="N" && trim($confirmation[0])!=="n"){
                     $emailConfirm = true;
@@ -87,7 +87,7 @@ try {
             try {
                 echo "Ingrese su contraseña\n";
                 shell_exec('stty -echo');   // apagar eco
-                $rawPass = fgets(STDIN);
+                $rawPass = stdinIsCanceled();
                 shell_exec('stty echo');    // encender de nuevo
                 echo PHP_EOL;               // el Enter del usuario no se imprimió, hazlo tú
             } finally{
@@ -112,4 +112,13 @@ try {
 } catch (\Throwable $th) {
     fwrite(STDERR, "algo falló al ejecutar el script:\n".$th);      // → STDERR (errores)
     exit(1);
+}
+
+function stdinIsCanceled():string{
+    $value = fgets(STDIN);
+    if($value===false){
+        echo "Cancelando ejeción del script...";
+        exit(1);
+    }
+    return (string)trim($value);
 }
