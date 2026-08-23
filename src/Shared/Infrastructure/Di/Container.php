@@ -15,7 +15,11 @@ final class Container {
 
 
     public function __construct(){}
-
+    /**
+     * @template T of object
+     * @param class-string<T> $requiredClass
+     * @return T
+     */
     public function get(string $requiredClass): object {
         if(!$requiredClass) throw new \InvalidArgumentException("La clase no puede estar vacia");
 
@@ -60,6 +64,9 @@ final class Container {
                             if($value->hasType() && $value->getType() instanceof ReflectionNamedType && !$value->getType()->isBuiltin()){
                                 $paramType = $value->getType();
                                 $typeName = $paramType->getName();
+                                if(!class_exists($typeName) && !interface_exists($typeName)){
+                                    throw new \InvalidArgumentException("No existe la clase del parámetro: ".$value->getName()." de la clase: ".$implementation);
+                                }
                                 $resolvedParams[] = $this->get($typeName);
                             }else if($value->isDefaultValueAvailable()){
                                 $resolvedParams[] = $value->getDefaultValue();
