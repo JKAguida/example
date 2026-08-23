@@ -12,6 +12,7 @@ use App\Auth\Infrastructure\Controllers\VerifyResetPasswordTokenController;
 use App\Auth\Infrastructure\Controllers\ResetPasswordController;
 use App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController;
 use App\Auth\Infrastructure\Controllers\RegisterUserWithRoleController;
+use App\Auth\Infrastructure\Controllers\GetUserController;
 use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
 
 
@@ -25,7 +26,10 @@ final class AuthRouter {
             "/auth/verify-reset-token" => [ 
                 "controller" => VerifyResetPasswordTokenController::class
             ],
-            
+            "/auth/me" => [ 
+                "controller" => GetUserController::class,
+                "middlewares" => [CheckAuthMiddleware::class]
+            ],
         ],
         'POST' => [
             "/auth/register" => [ 
