@@ -15,6 +15,8 @@ use App\Shared\Application\Port\MailerInterface;
 use App\Shared\Infrastructure\Mailer\SmtpMailer;
 
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Bootstrap\EnvironmentLoader;
+
 
 final class SharedContainerConfig {
     private function __construct() {}
@@ -30,17 +32,17 @@ final class SharedContainerConfig {
             
             \PDO::class => function(){ 
                 return new \PDO(
-                    'mysql:host='.getenv('DB_HOST').';dbname='.getenv('DB_NAME').';charset=utf8mb4',
-                    getenv('DB_USER'),
-                    getenv('DB_PASSWORD')
+                    'mysql:host='.EnvironmentLoader::envOrFail('DB_HOST').';dbname='.EnvironmentLoader::envOrFail('DB_NAME').';charset=utf8mb4',
+                    EnvironmentLoader::envOrFail('DB_USER'),
+                    EnvironmentLoader::envOrFail('DB_PASSWORD')
                 );
             },
             MailerInterface::class => function(){
                 return new SmtpMailer(
-                    getenv("SMTP_HOST"),
-                    getenv("SMTP_USERNAME"),
-                    getenv("SMTP_PASSWORD"),
-                    (int) getenv("SMTP_PORT"),
+                    EnvironmentLoader::envOrFail("SMTP_HOST"),
+                    EnvironmentLoader::envOrFail("SMTP_USERNAME"),
+                    EnvironmentLoader::envOrFail("SMTP_PASSWORD"),
+                    (int)EnvironmentLoader::envOrFail("SMTP_PORT"),
                 );
             },
 
