@@ -17,6 +17,8 @@ use App\Shared\Domain\Exception\CorruptedPersistedDataException;
 
 use App\Auth\Application\Service\CreateUserService;
 use App\Shared\Domain\Exception\NotAuthorizedException;
+use App\Shared\Domain\Exception\InvalidInputException;
+
 
 
 
@@ -30,11 +32,14 @@ final class RegisterUserWithRole {
         private readonly TransactionManagerInterface $transactionManager
     ){}
 
-    public function execute(RegisterUserRequestDTO $userData,RoleType $roleType, UserId $userAdminId):void{
+    public function execute(RegisterUserRequestDTO $userData,string $strRoleType, string $userRequestedId):void{
+        $userAdminId = UserId::fromString($userRequestedId);
         //validar el rol del ejecutor
         $isAdmin = $this->userRoleRepository->hasRole($userAdminId,RoleType::Admin);
         if(!$isAdmin) throw new NotAuthorizedException();
     
+        $roleType = RoleType::tryFrom($strRoleType);
+        if(!$roleType) throw new InvalidInputException("El rol solicitado no es válido");
         // Recuperar el role
         $role = $this->roleRepository->findByRoleType($roleType);
         if(!$role) throw new CorruptedPersistedDataException("El tipo de rol no fue encontrado.");
