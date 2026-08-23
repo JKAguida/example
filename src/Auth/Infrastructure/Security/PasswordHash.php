@@ -7,6 +7,7 @@ use App\Auth\Domain\ValueObject\Password;
 use App\Auth\Domain\ValueObject\RawPassword;
 
 final class PasswordHash implements PasswordHashInterface {
+    /** @var array<string,int> */
     private array $options = [
             'memory_cost' => PASSWORD_ARGON2_DEFAULT_MEMORY_COST, // Memoria en bytes
             'time_cost'   => PASSWORD_ARGON2_DEFAULT_TIME_COST,   // Número de iteraciones

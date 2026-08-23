@@ -3,7 +3,7 @@
 namespace App\Shared\Infrastructure\Middleware;
 
 final class CORSMiddleware {
-    public static function handle(){
+    public static function handle():void{
         $allowedOrigins = [getenv('ORIGIN_ONE')];
         error_log("[DEBUG_ORIGIN]: ".getenv('ORIGIN_ONE'));
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';

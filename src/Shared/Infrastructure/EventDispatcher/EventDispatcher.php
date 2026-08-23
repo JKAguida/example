@@ -6,6 +6,7 @@ use App\Shared\Domain\Event\DomainEventInterface;
 use App\Shared\Application\Port\EventListenerInterface;
 
 final class EventDispatcher implements EventDispatcherInterface {
+    /** @var array<class-string,list<EventListenerInterface>>*/
     private array $listeners = [];
 
     public function dispatch(DomainEventInterface $event):void {

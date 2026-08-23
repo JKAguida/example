@@ -35,6 +35,7 @@ final class JWTVerify implements TokenValidatorInterface {
         $this->key = new Key($publicKeyContent, 'RS256');
     }
 
+    /** @return array{sub:string,iat:int} */
     public function verify(string $token):array {
         try {
             $decoded = JWT::decode($token, $this->key);

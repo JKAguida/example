@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Auth\Infrastructure\Router;
+use App\Shared\Infrastructure\Router\Router;
 use App\Auth\Infrastructure\Controllers\RegisterController;
 use App\Auth\Infrastructure\Controllers\AccountConfirmController;
 use App\Auth\Infrastructure\Controllers\LoginController;
@@ -15,9 +16,13 @@ use App\Auth\Infrastructure\Controllers\RegisterUserWithRoleController;
 use App\Auth\Infrastructure\Controllers\GetUserController;
 use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
 
-
+/** 
+ * @phpstan-type RouterSchema array{GET:array<string,array{controller:class-string,middlewares?:list<class-string>}>,POST:array<string,array{controller:class-string,middlewares?:list<class-string>}>} 
+ * @phpstan-import-type RouteEntry from Router
+ * */
 
 final class AuthRouter {
+    /** @var RouterSchema */
     private static array $routes = [
         'GET' => [
             "/auth/confirm" => [ 
@@ -64,7 +69,8 @@ final class AuthRouter {
     ];
 
     private function __construct(){}
-
+    
+    /** @return ?RouteEntry */
     public static function router(string $method, string $path):?array {
         return isset(self::$routes[$method][$path]) ? self::$routes[$method][$path] : null;
     }

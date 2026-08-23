@@ -4,7 +4,7 @@ namespace App\Shared\Infrastructure\Bootstrap;
 
 final class EnvironmentLoader {
     private function __construct(){}
-    public static function load(){
+    public static function load():void{
         $path = __DIR__."/../../../../.env";
         $content = file_get_contents($path);
         $arrayContent = explode("\n",$content);

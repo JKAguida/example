@@ -9,10 +9,12 @@ use App\Auth\Domain\ValueObject\Email;
 use App\Auth\Domain\ValueObject\Password;
 use DateTimeImmutable;
 use App\Auth\Domain\Events\UserRegistered;
+use App\Shared\Domain\Event\DomainEventInterface;
 
 
 final class User {
 
+    /** @param array<DomainEventInterface> $domainEvents */
     private function __construct(
         private readonly UserId $userId,
         private UserName $userName,
@@ -72,6 +74,7 @@ final class User {
        );
     }
 
+    /** @return array<DomainEventInterface> */
     public function pullDomainEvents() : array {
         $events = $this->domainEvents;
         $this->domainEvents = [];

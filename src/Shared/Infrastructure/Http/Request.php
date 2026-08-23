@@ -5,6 +5,10 @@ namespace App\Shared\Infrastructure\Http;
 final class Request{
     private ?string $userId = null;
     
+    /**
+     * @param ?array<string,mixed> $body
+     * @param ?array<string,string> $query
+     */
     private function __construct(
         private readonly string $method,
         private readonly string $path,
@@ -32,6 +36,10 @@ final class Request{
         );
     }
 
+    /**
+     * @param ?array<string,mixed> $body
+     * @param ?array<string,string> $query
+     */
     public static function reconstitute(
         string $method,
         string $path,
@@ -59,7 +67,13 @@ final class Request{
 
     public function method():string {return $this->method; }
     public function path():string {return $this->path; }
+    /**
+     * @return ?array<string,mixed> 
+     */
     public function body():?array {return $this->body; }
+    /**
+     * @return ?array<string,string> 
+     */
     public function query():?array {return $this->query; }
     public function ip():string {return $this->ip; }
     public function userAgent():string {return $this->userAgent; }

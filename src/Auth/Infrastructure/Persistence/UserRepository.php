@@ -71,6 +71,7 @@ final class UserRepository implements UserRepositoryInterface {
         $stmt->execute($data);
     }
 
+    /** @param array{userId:string,userName:string,lastName:string,email:string,pass:string,isVerified:string,createdAt:string,updatedAt:string} $user */
     private static function reconstitute(array $user):User{
         return User::reconstitute(
             UserId::fromString($user['userId']),

@@ -5,8 +5,12 @@ use ReflectionClass;
 use ReflectionNamedType;
 
 final class Container {
+
+    /** @var array<string,class-string|callable> */
     private array $binds = [];
+    /** @var array<object> */
     private array $instances = [];
+    /** @var array<string,bool> */
     private array $inProgress = [];
 
 
@@ -80,7 +84,7 @@ final class Container {
 
     }
 
-    public function bind(string $interface, string | callable $implementation){
+    public function bind(string $interface, string | callable $implementation):void{
         $this->binds[$interface] = $implementation;
     }
 }

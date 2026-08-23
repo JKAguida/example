@@ -15,7 +15,7 @@ final class VerifyResetPasswordToken {
         private readonly VerificationTokenRepositoryInterface $verificationTokenRepository,
     ){}
 
-    public function verifyToken(string $tokenValue){
+    public function verifyToken(string $tokenValue):void{
         $tknValueObj = TokenValue::fromString($tokenValue);
         $tokenType = TokenType::PasswordRecovery;
 
