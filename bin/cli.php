@@ -44,7 +44,6 @@ try {
             
             echo "Roles registrados...\n";
             exit(0);
-            break;
         case "create-admin":
             $useCase = $container->get(CreateAdminUser::class);
             
@@ -106,11 +105,9 @@ try {
             $useCase->execute($registerUserRequestDTO);
             echo "Usuario registrado correctamente.\n";
             exit(0);
-            break;
         default:
             fwrite(STDERR, "Argumento no válido:\n Argumentos válidos: [ seed-roles, create-admin ].");      // → STDERR (errores)
             exit(1);
-            break;
     }
 } catch (\Throwable $th) {
     fwrite(STDERR, "algo falló al ejecutar el script:\n".$th);      // → STDERR (errores)

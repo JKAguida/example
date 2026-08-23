@@ -46,3 +46,5 @@ chmod 644 public.pem    # ésta sí puede ser legible por todos
 php bin/cli.php seed-roles
 php bin/cli.php create-admin
 ```
+composer require --dev phpstan/phpstan
+vendor/bin/phpstan analyse

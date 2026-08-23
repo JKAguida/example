@@ -15,5 +15,8 @@
         "ramsey/uuid": "^4.9",
         "firebase/php-jwt": "^7.1",
         "phpmailer/phpmailer": "^7.1"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.2"
     }
 }

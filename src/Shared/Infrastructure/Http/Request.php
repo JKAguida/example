@@ -3,7 +3,7 @@
 namespace App\Shared\Infrastructure\Http;
 
 final class Request{
-    private readonly string $userId;
+    private ?string $userId = null;
     
     private function __construct(
         private readonly string $method,
@@ -53,7 +53,7 @@ final class Request{
     }
 
     public function setUserId(string $id):void{
-        if(isset($this->userId)) return;
+        if($this->userId) return;
         $this->userId = $id;
     }
 
@@ -64,7 +64,7 @@ final class Request{
     public function ip():string {return $this->ip; }
     public function userAgent():string {return $this->userAgent; }
     public function authorization():?string {return $this->authorization; }
-    public function userId():?string {return $this->userId ?? null; }
+    public function userId():?string {return $this->userId; }
 
     private static function getAuthorizationHeader():?string {
         $headers = null;
