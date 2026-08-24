@@ -3,6 +3,7 @@
 namespace App\Shared\Infrastructure\Di;
 use ReflectionClass;
 use ReflectionNamedType;
+use App\Shared\Infrastructure\Exception\BadConfigurationException;
 
 final class Container {
 
@@ -36,7 +37,11 @@ final class Container {
         }
 
         if(array_key_exists($targetClass,$this->instances)){
-            return $this->instances[$targetClass];
+            $instancedExists = $this->instances[$targetClass];
+            if(!$instancedExists instanceof $targetClass){
+                throw new BadConfigurationException("La instancia solicitada: ".$targetClass." no es compatible con la encontrada: ".get_class($instancedExists));
+            }
+            return $instancedExists;
         }
 
         if(isset($this->inProgress[$targetClass]) && $this->inProgress[$targetClass]){
@@ -84,7 +89,11 @@ final class Container {
                     $this->instances[$targetClass] = $reflection->newInstanceWithoutConstructor();
                 }
             }
-            return $this->instances[$targetClass];
+            $newInstance = $this->instances[$targetClass];
+            if(!$newInstance instanceof $targetClass){
+                throw new BadConfigurationException("La instancia solicitada: ".$targetClass." no es compatible con la encontrada: ".get_class($newInstance));
+            }
+            return $newInstance;
         }finally{
             unset($this->inProgress[$targetClass]);
         }
