@@ -6,7 +6,7 @@ use ReflectionNamedType;
 
 final class Container {
 
-    /** @var array<string,class-string|callable> */
+    /** @var array<class-string,class-string|callable> */
     private array $binds = [];
     /** @var array<object> */
     private array $instances = [];
@@ -91,7 +91,22 @@ final class Container {
 
     }
 
+    /** 
+     * @param class-string $interface
+     * @param class-string|callable $implementation
+     */
     public function bind(string $interface, string | callable $implementation):void{
+        if(!interface_exists($interface)){
+            if(!class_exists($interface)){
+                throw new \InvalidArgumentException("La key esperada no esta definida: ".$interface);
+            }
+        }
+
+        if(!is_callable($implementation)){
+            if(!class_exists($implementation)){
+                throw new \InvalidArgumentException("La implementación no esta definida: ".$implementation);
+            }
+        }
         $this->binds[$interface] = $implementation;
     }
 }

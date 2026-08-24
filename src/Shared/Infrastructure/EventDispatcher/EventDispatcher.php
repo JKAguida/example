@@ -17,6 +17,7 @@ final class EventDispatcher implements EventDispatcherInterface {
         }
     }
 
+    /** @param class-string $eventName */
     public function addListener(string $eventName, EventListenerInterface $listener):void {
         if( !isset($this->listeners[$eventName]) ){
             $nwListsners = [...$this->listeners,$eventName=>[]];
