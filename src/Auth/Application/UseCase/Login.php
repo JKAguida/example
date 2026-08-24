@@ -60,7 +60,10 @@ final class Login {
             try {
                 $this->userRepository->save($userExist);
             } catch (\Throwable $th) {
-                error_log(json_encode($th));
+                $strTh = $th->getMessage();
+                if($strTh){
+                    error_log($strTh);
+                }
             }
         };
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Shared\Infrastructure\Http;
+use App\Shared\Infrastructure\Exception\BadConfigurationException;
 
 final class Request{
     private ?string $userId = null;
@@ -23,7 +24,11 @@ final class Request{
         $request_method = $_SERVER['REQUEST_METHOD'];
         $path = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'];
         $path_clean = explode('?',$path)[0];
-        $data = json_decode(file_get_contents('php://input'),true);
+        $bodyRecived = file_get_contents('php://input');
+        if(!$bodyRecived){
+            $bodyRecived = "";
+        }
+        $data = json_decode($bodyRecived,true);
         $headers = self::getAuthorizationHeader();
         return new self(
             method:$request_method,

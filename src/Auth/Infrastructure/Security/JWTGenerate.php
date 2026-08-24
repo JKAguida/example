@@ -6,6 +6,7 @@ use App\Auth\Application\Security\TokenGeneratorInterface;
 use Firebase\JWT\JWT;
 use App\Auth\Domain\ValueObject\UserId;
 use DateTimeImmutable;
+use App\Shared\Infrastructure\Exception\BadConfigurationException;
 
 final class JWTGenerate implements TokenGeneratorInterface {
     public function __construct(
@@ -20,7 +21,11 @@ final class JWTGenerate implements TokenGeneratorInterface {
             "sub"=>$userId->value(),
             "exp"=>$exp->getTimestamp()
         ];
-        $token = JWT::encode($payload, file_get_contents($this->privateKey), 'RS256');
+        $key = file_get_contents($this->privateKey);
+        if(!$key){
+            throw new BadConfigurationException("No se recibio la private key correctamente");
+        }
+        $token = JWT::encode($payload,$key,'RS256');
         return $token;
     }
 }
