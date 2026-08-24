@@ -35,11 +35,17 @@ body {
     min-height: 100dvh;
 }
 
-.layout__header {}
+.layout__header {
+    
+}
 
-.layout__main {}
+.layout__main {
 
-.layout__footer {}
+}
+
+.layout__footer {
+
+}
 
 /*Utils*/
 .flex-center {
