@@ -3,7 +3,9 @@
 namespace App\Shared\Infrastructure\Http;
 use App\Shared\Application\Port\CookieManagerInterface;
 
+/** @phpstan-import-type CookieOptions from CookieManagerInterface */
 final class CookieManager implements CookieManagerInterface {
+    /** @param CookieOptions $options */
     public function set(string $key,string $value, array $options):void{
         setcookie($key,$value,$options);
     }

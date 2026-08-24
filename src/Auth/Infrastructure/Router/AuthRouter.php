@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Auth\Infrastructure\Router;
+use App\Shared\Infrastructure\Router\Router;
 use App\Auth\Infrastructure\Controllers\RegisterController;
 use App\Auth\Infrastructure\Controllers\AccountConfirmController;
 use App\Auth\Infrastructure\Controllers\LoginController;
@@ -12,11 +13,18 @@ use App\Auth\Infrastructure\Controllers\VerifyResetPasswordTokenController;
 use App\Auth\Infrastructure\Controllers\ResetPasswordController;
 use App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController;
 use App\Auth\Infrastructure\Controllers\RegisterUserWithRoleController;
+use App\Auth\Infrastructure\Controllers\GetUserController;
 use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
 
+/** 
+ * @phpstan-type RouterSchema array{GET:array<string,array{controller:class-string<HandlerInterface>,middlewares?:list<class-string<HandlerInterface>>}>,POST:array<string,array{controller:class-string<HandlerInterface>,middlewares?:list<class-string<HandlerInterface>>}>} 
+ * @phpstan-import-type RouteEntry from Router
+ * */
 
 final class AuthRouter {
+    /** @var RouterSchema */
     private static array $routes = [
         'GET' => [
             "/auth/confirm" => [ 
@@ -25,7 +33,10 @@ final class AuthRouter {
             "/auth/verify-reset-token" => [ 
                 "controller" => VerifyResetPasswordTokenController::class
             ],
-            
+            "/auth/me" => [ 
+                "controller" => GetUserController::class,
+                "middlewares" => [CheckAuthMiddleware::class]
+            ],
         ],
         'POST' => [
             "/auth/register" => [ 
@@ -60,7 +71,8 @@ final class AuthRouter {
     ];
 
     private function __construct(){}
-
+    
+    /** @return ?RouteEntry */
     public static function router(string $method, string $path):?array {
         return isset(self::$routes[$method][$path]) ? self::$routes[$method][$path] : null;
     }

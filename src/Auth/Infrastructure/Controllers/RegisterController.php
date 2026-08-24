@@ -6,9 +6,10 @@ use App\Auth\Application\UseCase\RegisterUser;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
 
-final class RegisterController{
+final class RegisterController implements HandlerInterface{
     public function __construct(
         private readonly RegisterUser $registerUser,
         private readonly Request $req

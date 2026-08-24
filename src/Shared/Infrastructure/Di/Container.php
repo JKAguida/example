@@ -5,13 +5,21 @@ use ReflectionClass;
 use ReflectionNamedType;
 
 final class Container {
+
+    /** @var array<class-string,class-string|callable> */
     private array $binds = [];
+    /** @var array<object> */
     private array $instances = [];
+    /** @var array<string,bool> */
     private array $inProgress = [];
 
 
     public function __construct(){}
-
+    /**
+     * @template T of object
+     * @param class-string<T> $requiredClass
+     * @return T
+     */
     public function get(string $requiredClass): object {
         if(!$requiredClass) throw new \InvalidArgumentException("La clase no puede estar vacia");
 
@@ -56,6 +64,9 @@ final class Container {
                             if($value->hasType() && $value->getType() instanceof ReflectionNamedType && !$value->getType()->isBuiltin()){
                                 $paramType = $value->getType();
                                 $typeName = $paramType->getName();
+                                if(!class_exists($typeName) && !interface_exists($typeName)){
+                                    throw new \InvalidArgumentException("No existe la clase del parámetro: ".$value->getName()." de la clase: ".$implementation);
+                                }
                                 $resolvedParams[] = $this->get($typeName);
                             }else if($value->isDefaultValueAvailable()){
                                 $resolvedParams[] = $value->getDefaultValue();
@@ -80,7 +91,22 @@ final class Container {
 
     }
 
-    public function bind(string $interface, string | callable $implementation){
+    /** 
+     * @param class-string $interface
+     * @param class-string|callable $implementation
+     */
+    public function bind(string $interface, string | callable $implementation):void{
+        if(!interface_exists($interface)){
+            if(!class_exists($interface)){
+                throw new \InvalidArgumentException("La key esperada no esta definida: ".$interface);
+            }
+        }
+
+        if(!is_callable($implementation)){
+            if(!class_exists($implementation)){
+                throw new \InvalidArgumentException("La implementación no esta definida: ".$implementation);
+            }
+        }
         $this->binds[$interface] = $implementation;
     }
 }

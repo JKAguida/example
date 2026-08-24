@@ -23,6 +23,7 @@ use App\Auth\Application\Security\Exception\AccessTokenExpiredException;
 
 
 final class HandlerExceptions {
+    /** @var array<class-string,array{status_code:int,code:string,msg:string}> */
     private array $code_map = [
         CorruptedPersistedDataException::class => [
             'status_code' => 500,
@@ -88,7 +89,7 @@ final class HandlerExceptions {
             'status_code'=> 403,
             'code' => 'NOT_AUTHORIZED',
             'msg' => 'No tienes los permisos para acceder al recurso.'
-        ],
+        ]
     ];
 
     public function handle(

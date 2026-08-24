@@ -2,13 +2,19 @@ export const ACCESS_TOKEN_KEY = "accessTokenJkApp";
 
 let refreshInProgress = null;
 
-export async function fetchAPI(path, data, method) {
+export async function fetchAPI(path, data, method, retry = 0) {
     let response = await doFetch(path, data, method);
     if (response.status === 401 && response.data.code === "ACCESS_TOKEN_EXPIRED") {
-        refreshInProgress = doFetch("/auth/refresh", null, "POST");
-        const refreshed = await refresh(refreshInProgress);
+        if(retry>0) return response;
+        // Guarda la peticion de refresh
+        let refreshed = null;
+        if(!refreshInProgress){
+            refreshInProgress = doFetch("/auth/refresh", null, "POST");
+        }
+        refreshed = await refresh(refreshInProgress);
+
         if(refreshed){
-            response = await fetchAPI(path, data, method);
+            response = await fetchAPI(path, data, method, retry+1);
         }
     }
     return response;

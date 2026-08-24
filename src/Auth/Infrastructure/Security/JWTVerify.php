@@ -23,7 +23,6 @@ final class JWTVerify implements TokenValidatorInterface {
     public function __construct(
         private readonly string $publicKey,
     ){
-        error_log("[JWT_PUBLIC_KEY]: ".$this->publicKey);
 
         $publicKeyContent = file_get_contents($this->publicKey);
         
@@ -35,11 +34,14 @@ final class JWTVerify implements TokenValidatorInterface {
         $this->key = new Key($publicKeyContent, 'RS256');
     }
 
+    /** @return array{sub:string,iat:int} */
     public function verify(string $token):array {
         try {
             $decoded = JWT::decode($token, $this->key);
-            $decoded_array = (array) $decoded;
-            return $decoded_array;
+            return [
+                "sub"=>$decoded->sub,
+                "iat"=>$decoded->iat
+            ];
         } catch (DomainException $e) {
             // provided algorithm is unsupported OR
             // provided key is invalid OR

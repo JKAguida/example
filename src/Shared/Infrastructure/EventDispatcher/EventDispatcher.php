@@ -6,6 +6,7 @@ use App\Shared\Domain\Event\DomainEventInterface;
 use App\Shared\Application\Port\EventListenerInterface;
 
 final class EventDispatcher implements EventDispatcherInterface {
+    /** @var array<class-string,list<EventListenerInterface>>*/
     private array $listeners = [];
 
     public function dispatch(DomainEventInterface $event):void {
@@ -16,6 +17,7 @@ final class EventDispatcher implements EventDispatcherInterface {
         }
     }
 
+    /** @param class-string $eventName */
     public function addListener(string $eventName, EventListenerInterface $listener):void {
         if( !isset($this->listeners[$eventName]) ){
             $nwListsners = [...$this->listeners,$eventName=>[]];

@@ -62,6 +62,7 @@ final class RefreshTokenRepository implements RefreshTokenRepositoryInterface {
         $stmt->execute($data);
     }
 
+    /** @param array{tokenId:string,tokenValue:string,refreshTokenExpiration:string,userId:string,userAgent:string,ip:string } $refreshToken */
     private static function reconstitute(array $refreshToken):RefreshToken {
         return RefreshToken::reconstitute(
             TokenId::fromString($refreshToken["tokenId"]),

@@ -77,7 +77,7 @@ final class VerificationTokenRepository implements VerificationTokenRepositoryIn
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($data);
     }
-
+    /** @param array{tokenId:string,tokenValue:string,tokenExpiration:string,tokenType:string,userId:string} $verificationToken */
     private static function reconstitute(array $verificationToken):VerificationToken{
         return VerificationToken::reconstitute(
             TokenId::fromString($verificationToken["tokenId"]),

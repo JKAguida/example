@@ -24,6 +24,7 @@ final class UserRoleRepository implements UserRoleRepositoryInterface {
         $stmt->execute($data);
     }
 
+    /** @return array<Role> */
     public function findByUserId(UserId $userId): array {
         $data = [
             "userId" => $userId->value()

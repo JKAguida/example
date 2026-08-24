@@ -2,14 +2,20 @@
 
 namespace App\Shared\Infrastructure\Router;
 use App\Shared\Infrastructure\Http\Exception\InvalidPathException;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
+
+/** 
+ * @phpstan-type RouteEntry array{controller: class-string<HandlerInterface>, middlewares?: list<class-string<HandlerInterface>>} 
+ * */
 
 final class Router {
+    /** @var array<string,string> */
     private static array $routers = [
         "auth" => "App\Auth\Infrastructure\Router\AuthRouter"
     ];
 
     private function __construct(){}
-
+    /** @return RouteEntry */
     public static function resolve(string $method, string $path): array {
         $uri_parts = explode('/',$path);
         $bounded_context = $uri_parts[1];

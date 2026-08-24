@@ -20,7 +20,7 @@ final class AccountConfirm {
         private readonly TransactionManagerInterface $transactionManager
     ){}
 
-    public function confirmAccount(string $tokenValue){
+    public function confirmAccount(string $tokenValue):void{
         $tknValueObj = TokenValue::fromString($tokenValue);
         $tokenType = TokenType::EmailConfirmation;
 

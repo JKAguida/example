@@ -1,10 +1,15 @@
 <?php
 
 namespace App\Shared\Infrastructure\Http;
+use App\Shared\Infrastructure\Exception\BadConfigurationException;
 
 final class Request{
-    private readonly string $userId;
+    private ?string $userId = null;
     
+    /**
+     * @param ?array<string,mixed> $body
+     * @param ?array<string,string> $query
+     */
     private function __construct(
         private readonly string $method,
         private readonly string $path,
@@ -19,7 +24,11 @@ final class Request{
         $request_method = $_SERVER['REQUEST_METHOD'];
         $path = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'];
         $path_clean = explode('?',$path)[0];
-        $data = json_decode(file_get_contents('php://input'),true);
+        $bodyRecived = file_get_contents('php://input');
+        if(!$bodyRecived){
+            $bodyRecived = "";
+        }
+        $data = json_decode($bodyRecived,true);
         $headers = self::getAuthorizationHeader();
         return new self(
             method:$request_method,
@@ -32,6 +41,10 @@ final class Request{
         );
     }
 
+    /**
+     * @param ?array<string,mixed> $body
+     * @param ?array<string,string> $query
+     */
     public static function reconstitute(
         string $method,
         string $path,
@@ -53,18 +66,24 @@ final class Request{
     }
 
     public function setUserId(string $id):void{
-        if(isset($this->userId)) return;
+        if($this->userId) return;
         $this->userId = $id;
     }
 
     public function method():string {return $this->method; }
     public function path():string {return $this->path; }
+    /**
+     * @return ?array<string,mixed> 
+     */
     public function body():?array {return $this->body; }
+    /**
+     * @return ?array<string,string> 
+     */
     public function query():?array {return $this->query; }
     public function ip():string {return $this->ip; }
     public function userAgent():string {return $this->userAgent; }
     public function authorization():?string {return $this->authorization; }
-    public function userId():?string {return $this->userId ?? null; }
+    public function userId():?string {return $this->userId; }
 
     private static function getAuthorizationHeader():?string {
         $headers = null;

@@ -5,9 +5,10 @@ use App\Auth\Application\UseCase\PasswordRecovery;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
 
-final class PasswordRecoveryController {
+final class PasswordRecoveryController implements HandlerInterface{
     public function __construct(
         private readonly PasswordRecovery $passwordRecovery,
         private readonly Request $req

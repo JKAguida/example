@@ -56,7 +56,8 @@ final class RoleRepository implements RoleRepositoryInterface {
         
     }
 
-    private static function reconstitute(array $role){
+    /** @param array{roleId:string,roleType:string} $role */
+    private static function reconstitute(array $role):Role{
         return Role::reconstitute(
             RoleId::fromString($role["roleId"]),
             RoleType::from($role["roleType"])

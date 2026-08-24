@@ -3,6 +3,10 @@
 namespace App\Shared\Infrastructure\Http;
 
 final class Response {
+    /**
+    * @param ?array<string,mixed> $data
+    * @param ?array<string,mixed> $metadata
+    */
     public function __construct(
         private readonly string $msg,
         private readonly int $status_code=200,
@@ -12,7 +16,7 @@ final class Response {
         private readonly string $status = 'success'
     ) { }
 
-    public function send() {
+    public function send():void {
         http_response_code($this->status_code);
         header("Content-Type: application/json");
         $data = [

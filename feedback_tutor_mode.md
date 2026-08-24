@@ -285,6 +285,33 @@ El usuario **cuestionó una recomendación mía con el razonamiento correcto** (
 
 ---
 
+### Sesión 2026-08-24 (PHPStan nivel 7: 26 → 1 error)
+
+**Completado y probado (ejecución real, no solo análisis estático):**
+
+- `EnvironmentLoader::envOrFail()` — captura en variable antes de comparar (el *cast* no estrecha una expresión, solo una variable); `load()` distingue `.env` ausente de `.env` vacío
+- `SharedContainerConfig` migrado a `envOrFail()` — probado el camino de fallo real (`.env` incompleto da `BadConfigurationException` nombrando la variable, no un error de MySQL)
+- `bin/cli.php` — `stdinIsCanceled()` centraliza el `fgets(STDIN)===false`, eliminó el bucle infinito con Ctrl+D
+- `Request::create()` — ya no revienta en peticiones sin body (`GET /auth/me`); anotado que JSON malformado y "sin body" colapsan al mismo `null` (deuda, no urgente)
+- `Login.php` — `json_encode($th)` cambiado a `$th->getMessage()`: el primero da `"{}"` siempre (propiedades privadas de `Throwable`), el log quedaba mudo
+- `JWTVerify::verify()` — quitado el *cast* `(array)` sobre el objeto decodificado; se lee `$decoded->sub`/`$decoded->iat` directo, honesto con el tipo real
+- Líneas de depuración `[JWT_SECRET_WORD]` / `[JWT_PUBLIC_KEY]` (imprimían la ruta de las llaves en cada login/verificación) — eliminadas, no sumadas a deuda técnica
+- `EventDispatcher::addListener()` y `Container::bind()` — parámetros de `string` a `class-string`; en ambos casos el usuario **verificó primero todos los llamadores** antes de estrechar el tipo
+- `HandlerInterface` nueva (`Shared/Infrastructure/Interfaces/`) — implementada en los 13 controllers + `CheckAuthMiddleware`. `RouteEntry`/`RouterSchema` ahora usan `class-string<HandlerInterface>` en vez de `class-string` genérico
+
+**Concepto clave del día — el genérico se resuelve por el argumento, no por la cota:**
+El usuario asumió que arreglar `public/index.php:39,49` requería tocar `T of object` en `Container::get()`. Antes de tocarlo, se le pidió confirmar con el propio análisis: cambiar solo los `@phpstan-type` de los routers a `class-string<HandlerInterface>` bastó — PHPStan infiere `T` del tipo del argumento en cada llamada, no del límite superior de la plantilla. **`Container.php` no se tocó para nada** en ese paso. Confirmó la hipótesis él mismo corriendo PHPStan antes de asumir que hacía falta más.
+
+**Bug real encontrado por accidente, no por PHPStan:** al escribir validación nueva en `bind()`, tres intentos seguidos con guardas invertidas u operador equivocado (`interface_exists` sin negar, `||` en vez de `&&`, `class_exists($implementation)` con un `Closure`, `class_exists($implementation)` en vez de `class_exists($interface)`). Los cuatro se detectaron **ejecutando** `bind()` contra un caso real (`Request::class` con closure), no leyendo el código ni con PHPStan — que seguía en verde con la guarda todavía rota. Refuerza la lección de la sesión anterior: *"PHPStan verde no significa aplicación funcionando"*, esta vez en la dirección contraria (código roto que sí pasaba el análisis).
+
+**Naming guiado (varios intentos hasta aterrizar):** `ImplementationWithExecuteMethod` → `ImplementationInterface` → `ImplementationMethodInterface` → `AdapterImplementationInterface` → `HandlerPrimaryAdapterInterface` → **`HandlerInterface`**. Se le insistió en comparar cada intento contra el patrón ya validado del proyecto (`MailerInterface`, `TransactionManagerInterface`): un sustantivo de rol, sin apilar calificativos que ya están documentados en otro lado (`CLAUDE.md` ya dice que los controllers son adaptadores primarios; no hace falta repetirlo en el nombre de cada interfaz). También detectó solo que `Port` como nombre de carpeta ya significaba algo específico en su propio proyecto (`Shared/Application/Port/`) y lo evitó.
+
+**Pendiente (anotado por el usuario para resolver más tarde):**
+- `Container::bind()` no valida que `$implementation` sea compatible con `$interface` — solo comprueba que ambos existan por separado. Se demostró que `instanceof $targetClass` (con `$targetClass` tipado `class-string<T>`) sí estrecha `T` para PHPStan de forma honesta (comprobación real en runtime, no un `@var` forzado) — pendiente aplicarlo en los dos `return $this->instances[$targetClass]` de `get()` (líneas 39 y 87), y decidir qué excepción lanzar si no coincide (sería la red de seguridad real contra un `bind(MailerInterface::class, ClaseSinRelación::class)` silencioso)
+- El único error restante en PHPStan nivel 7 (`Container.php:39`, "should return T but returns object") es inherente: una caché heterogénea (`array<object>`) no puede demostrar estáticamente que el valor guardado bajo una clave dinámica es el `T` pedido. No tiene solución honesta sin el `instanceof` de arriba
+
+---
+
 ## ▶️ RETOMAR AQUÍ: candado de concurrencia del refresh
 
 **Estado:** el interceptor 401 en `frontend/shared/api.js` **funciona** para peticiones secuenciales. Falta el candado y el guardia de reintento.

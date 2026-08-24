@@ -4,10 +4,11 @@ use App\Auth\Domain\Exception\InvalidTokenException;
 use App\Auth\Application\Security\TokenValidatorInterface;
 use App\Auth\Domain\ValueObject\UserId;
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
 
 
-final class CheckAuthMiddleware {
+final class CheckAuthMiddleware implements HandlerInterface{
     public function __construct(
         private readonly TokenValidatorInterface $tokenValidator,
         private readonly Request $req
