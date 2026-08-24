@@ -5,9 +5,10 @@ use App\Auth\Application\UseCase\ResetPassword;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
 
-final class ResetPasswordController {
+final class ResetPasswordController implements HandlerInterface{
     public function __construct(
         private readonly ResetPassword $resetPassword,
         private readonly Request $req

@@ -6,9 +6,10 @@ use App\Auth\Application\DTO\LoginRequestDTO;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
 
-final class LoginController {
+final class LoginController implements HandlerInterface{
     public function __construct(
         private readonly Login $login,
         private readonly Request $req

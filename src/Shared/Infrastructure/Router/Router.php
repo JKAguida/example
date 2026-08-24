@@ -2,8 +2,10 @@
 
 namespace App\Shared\Infrastructure\Router;
 use App\Shared\Infrastructure\Http\Exception\InvalidPathException;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
+
 /** 
- * @phpstan-type RouteEntry array{controller: class-string, middlewares?: list<class-string>} 
+ * @phpstan-type RouteEntry array{controller: class-string<HandlerInterface>, middlewares?: list<class-string<HandlerInterface>>} 
  * */
 
 final class Router {

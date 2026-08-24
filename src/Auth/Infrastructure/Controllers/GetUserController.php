@@ -5,10 +5,11 @@ use App\Auth\Application\UseCase\GetUser;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\Request;
 use App\Shared\Infrastructure\Middleware\RequiresAuthenticationInterface;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
 
 
-final class GetUserController implements RequiresAuthenticationInterface{
+final class GetUserController implements RequiresAuthenticationInterface,HandlerInterface {
     public function __construct(
         private readonly GetUser $getUser,
         private readonly Request $req

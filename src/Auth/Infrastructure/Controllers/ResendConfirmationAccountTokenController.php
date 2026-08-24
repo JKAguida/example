@@ -6,9 +6,10 @@ use App\Auth\Application\UseCase\ResendConfirmationAccountToken;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
 
-final class ResendConfirmationAccountTokenController {
+final class ResendConfirmationAccountTokenController implements HandlerInterface{
     public function __construct(
         private readonly ResendConfirmationAccountToken $useCase,
         private readonly Request $req

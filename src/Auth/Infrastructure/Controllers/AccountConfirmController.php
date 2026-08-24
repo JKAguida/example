@@ -5,9 +5,9 @@ use App\Auth\Application\UseCase\AccountConfirm;
 use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
-
-final class AccountConfirmController {
+final class AccountConfirmController implements HandlerInterface{
     public function __construct(
         private readonly AccountConfirm $accountConfirm,
         private readonly Request $req

@@ -7,8 +7,9 @@ use App\Shared\Infrastructure\Http\Response;
 use App\Shared\Infrastructure\Http\PayloadValidator;
 use App\Shared\Infrastructure\Middleware\RequiresAuthenticationInterface;
 use App\Shared\Infrastructure\Http\Request;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
 
-final class RegisterUserWithRoleController implements RequiresAuthenticationInterface{
+final class RegisterUserWithRoleController implements RequiresAuthenticationInterface, HandlerInterface{
 
     public function __construct(
         private readonly RegisterUserWithRole $registerUser,

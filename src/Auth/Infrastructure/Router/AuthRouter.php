@@ -15,9 +15,11 @@ use App\Auth\Infrastructure\Controllers\ResendConfirmationAccountTokenController
 use App\Auth\Infrastructure\Controllers\RegisterUserWithRoleController;
 use App\Auth\Infrastructure\Controllers\GetUserController;
 use App\Auth\Infrastructure\Middleware\CheckAuthMiddleware;
+use App\Shared\Infrastructure\Interfaces\HandlerInterface;
+
 
 /** 
- * @phpstan-type RouterSchema array{GET:array<string,array{controller:class-string,middlewares?:list<class-string>}>,POST:array<string,array{controller:class-string,middlewares?:list<class-string>}>} 
+ * @phpstan-type RouterSchema array{GET:array<string,array{controller:class-string<HandlerInterface>,middlewares?:list<class-string<HandlerInterface>>}>,POST:array<string,array{controller:class-string<HandlerInterface>,middlewares?:list<class-string<HandlerInterface>>}>} 
  * @phpstan-import-type RouteEntry from Router
  * */
 
