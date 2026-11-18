@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 Personal PHP web app to practice hexagonal architecture + DDD.
 
 **Features planned:**
@@ -11,9 +15,61 @@ Motivación real: migrar un proyecto laboral existente de "código espagueti" a 
 
 **How to apply:** Treat every feature as a teaching opportunity. Push the user to identify bounded contexts, ports, adapters, and domain entities themselves before confirming.
 
+### Modo tutor (regla de trabajo)
+
+- **No escribir código ni contenido de archivos de la aplicación** (PHP, JS, SQL, HTML/CSS). El usuario lo
+  pidió explícitamente: aprende haciendo, no copiando. La respuesta es guía, explicación y preguntas
+- Si se atasca, no saltar a la solución: llevarlo a (1) pensar los casos borde, (2) trazar qué valor tiene
+  cada variable, (3) contrastar con lo que ya decidió antes
+- **Un cambio, una ejecución.** PHPStan en verde no significa aplicación funcionando: varios bugs reales
+  solo aparecieron al ejecutar
+- Conversar en español
+- `feedback_tutor_mode.md` (raíz del repo) es la bitácora de sesiones: qué derivó el usuario por su cuenta,
+  sus patrones de error recurrentes y dónde quedó la última sesión. Leerla al retomar trabajo y contrastar
+  su sección final con el código, porque puede ir por detrás
+
 ---
 
-## Estado (2026-08-22)
+## Comandos
+
+No hay build, ni tests automatizados (no hay PHPUnit), ni runner de migraciones. La única verificación
+automática es PHPStan; lo demás se prueba levantando la app.
+
+```bash
+composer install                    # dependencias + autoload PSR-4 (App\ → src/)
+composer dump-autoload              # regenerar el autoload
+
+vendor/bin/phpstan analyse          # nivel 7 sobre src/, public/ y bin/; hoy da "No errors"
+vendor/bin/phpstan analyse src/Auth/Application/UseCase/Login.php    # un solo archivo
+
+php -S localhost:8000 -t public     # API. El front tiene http://localhost:8000 fijo en frontend/shared/api.js
+php -S localhost:3000 -t frontend   # front estático (sirve cualquier servidor con raíz en frontend/)
+
+php bin/cli.php seed-roles          # una vez, antes de crear cualquier usuario
+php bin/cli.php create-admin        # interactivo
+```
+
+Puesta en marcha en un equipo nuevo (PHP ≥ 8.1 por enums y `readonly`; aquí corre 8.3):
+
+```bash
+cp .env.template .env               # el template trae solo los nombres de las claves
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 \
+  -out src/Auth/Infrastructure/Security/keys/private.pem
+openssl pkey -in src/Auth/Infrastructure/Security/keys/private.pem -pubout \
+  -out src/Auth/Infrastructure/Security/keys/public.pem
+chmod 600 src/Auth/Infrastructure/Security/keys/private.pem
+```
+
+- Las migraciones de `database/migrations/` se aplican a mano, en orden numérico, sobre MySQL
+- Usar `localhost`, no `127.0.0.1`: CORS compara el origen contra `ORIGIN_ONE` de forma exacta, y los
+  enlaces de los correos se arman con ese mismo valor
+- `create-admin` pasa por el mismo flujo que el registro: la cuenta nace sin verificar y manda el correo de
+  confirmación. Sin SMTP funcionando el admin no puede iniciar sesión
+- `JWT_SECRET_WORD` sigue en `.env.template` pero ningún código la lee (el JWT es RS256 con las llaves `.pem`)
+
+---
+
+## Estado (último commit: 2026-08-24)
 
 **Bounded Context Auth — TERMINADO.** Identidad, roles y autorización completos, con frontend funcionando end-to-end.
 
@@ -27,7 +83,12 @@ Roles: entidades, repos, seed y CLI de admin     ✓
 Verificación de JWT + middleware de auth         ✓
 RegisterUserWithRole (admin crea usuarios)       ✓
 Interceptor 401 en el frontend                   ✓
+GET /auth/me (datos del usuario + roles)         ✓
+PHPStan nivel 7 sin errores                      ✓
 ```
+
+**En curso:** primera vista protegida del front. `frontend/Auth/Me/` tiene solo el HTML; `me.js` y
+`me.css` están vacíos.
 
 **Siguiente bounded context:** Training (rutinas de ejercicio + progreso).
 
@@ -45,21 +106,51 @@ src/
                         CookieManager, excepciones HTTP)
                       Di (Container, ContainerConfig, SharedContainerConfig)
                       Router, Mailer, Persistence, EventDispatcher, Bootstrap,
-                      Middleware (CORS, RequiresAuthenticationInterface), Exception
+                      Middleware (CORS, RequiresAuthenticationInterface), Exception,
+                      Interfaces (HandlerInterface)
   Auth/
     Domain/           User, VerificationToken, RefreshToken, Role + sus VOs,
                       repositorios (interfaces), servicios de dominio, eventos,
                       excepciones de dominio
-    Application/      UseCase (11), Service (CreateUserService), DTO,
+    Application/      UseCase (uno por intención), Service (CreateUserService), DTO,
                       Security (TokenGenerator/TokenValidator + excepciones)
-    Infrastructure/   Controllers (11), Persistence, Security (JWT, Argon2id),
+    Infrastructure/   Controllers (uno por ruta), Persistence, Security (JWT, Argon2id),
                       EventListener, Router, Middleware, Di
 
 public/index.php      bootstrap HTTP
 bin/cli.php           bootstrap CLI (seed-roles, create-admin)
-database/migrations/  006 archivos SQL
-frontend/             Auth/{Register,Login,...} + shared/{api,toast,validations}
+config/auth.php       rutas de las llaves RSA
+database/migrations/  SQL numerado (MySQL)
+frontend/             Auth/{Register,Login,Me,...} + shared/{api,toast,form-validations,logout}
 ```
+
+Otros documentos: `ARQUITECTURA.md` es la guía conceptual de las tres capas (qué va en cada una y por qué).
+`AuthDirectories` es el boceto inicial de carpetas y ya no coincide con el código.
+
+### Ciclo de una petición
+
+`public/index.php` es el único punto de entrada y todo corre dentro de un solo `try/catch`:
+
+1. `EnvironmentLoader::load()` → `ContainerConfig::create()` → `CORSMiddleware::handle()` (en `OPTIONS`
+   responde y corta)
+2. Se registran a mano los listeners de eventos en el dispatcher
+3. `Router::resolve()`: el primer segmento de la URL (`/auth/...`) elige el router del bounded context, y
+   este devuelve `{controller, middlewares?}`
+4. Se ejecutan los middlewares en orden. No hay `next()`: un middleware que falla **lanza**
+5. Se comprueba `RequiresAuthenticationInterface` contra `Request::userId()`
+6. `$controller->execute()` arma su `Response` y la envía
+7. Cualquier `Throwable` llega a `HandlerExceptions`, que lo traduce a la respuesta de error
+
+Toda respuesta, de éxito o de error, lleva el mismo sobre JSON: `{status, code, msg, data, metadata}`.
+
+### Lo que un bounded context nuevo toca fuera de su carpeta
+
+- `Router::$routers`: prefijo de URL → clase del router
+- `ContainerConfig::create()`: llamada al `register()` de su config de DI
+- `HandlerExceptions::$code_map`: sus excepciones (ver la nota bajo la tabla de errores)
+- `public/index.php`: sus `addListener()`. También `bin/cli.php` si un comando dispara el evento (hoy solo
+  registra `UserRegistered`)
+- `database/migrations/`: siguiente número
 
 ---
 
@@ -103,8 +194,12 @@ distintas determinó cuántas excepciones crear.
 | payload incompleto | 400 | INCOMPLETE_PAYLOAD (+ campos en `data`) |
 | valor inválido del cliente | 400 | INVALID_INPUT |
 | ruta no encontrada | 404 | NOT_FOUND |
-| no autorizado | — | (NotAuthorizedException) |
-| dato corrupto / config / inesperado | 500 | genérico + log |
+| no autorizado | 403 | NOT_AUTHORIZED |
+| dato corrupto / config / inesperado | 500 | CORRUPTED_DATA / BAD_CONFIGURATION / SERVER_ERROR (msg genérico + log) |
+
+El mapa vive en `HandlerExceptions::$code_map` y se consulta por **clase exacta** (`$exception::class`):
+una subclase no hereda la entrada de su padre, y toda excepción que no esté en el mapa sale como
+500 `SERVER_ERROR`.
 
 Principios que sostienen esa tabla:
 - **Dos audiencias**: el mensaje de la excepción se escribe para el log (detalle máximo, con
@@ -128,6 +223,8 @@ Principios que sostienen esa tabla:
 - `create()` desde superglobales / `reconstitute()` para pruebas — mismo patrón que las entidades
 - Controllers = adaptadores primarios: validar payload → traducir a DTO → invocar Use Case → responder.
   Sin try/catch: las excepciones suben al handler del bootstrap
+- `HandlerInterface` (`execute(): void`) la implementan controllers **y** middlewares; los routers tipan
+  ambos como `class-string<HandlerInterface>`, y de ahí PHPStan infiere el tipo que devuelve `Container::get()`
 - `PayloadValidator` valida **presencia**; los VOs validan **validez**
 - Rutas: `Router` orquestador + un router por bounded context. Cada ruta declara controlador y
   `middlewares` (opción "opt-in"; ver deuda)
@@ -157,13 +254,16 @@ Principios que sostienen esa tabla:
 - `isInstantiable()` cubre interfaz, abstracta y constructor privado de una vez
 - Detección de ciclos con `$inProgress[]` limpiado en un `finally`; la clave es `$targetClass` porque
   `$implementation` puede ser un Closure
-- Instancias cacheadas por petición (PHP es shared-nothing: no hay estado entre peticiones)
+- Instancias cacheadas por petición (PHP es shared-nothing: no hay estado entre peticiones). De eso
+  dependen las transacciones: `TransactionManager` y los repositorios reciben la **misma** `\PDO`
 
 ### Infraestructura y operación
 - UTC en toda la app (`date_default_timezone_set` en ambos bootstraps) y en la BD
-- `.env` con valores entrecomillados si llevan espacios (App Password de Gmail)
-- Claves RSA fuera del repo (`*.pem` en `.gitignore`); la pública se **deriva** con
-  `openssl pkey -in private.pem -pubout`, nunca se copia el archivo
+- `.env`: `EnvironmentLoader` pasa cada línea tal cual a `putenv()`. Formato `CLAVE=valor` **sin comillas**
+  aunque el valor lleve espacios (App Password de Gmail): las comillas quedarían dentro del valor.
+  Comentarios solo con `#` al inicio de la línea
+- Claves RSA fuera del repo (`*.pem` en `.gitignore`), en `src/Auth/Infrastructure/Security/keys/`; la
+  pública se **deriva** con `openssl pkey -in private.pem -pubout`, nunca se copia el archivo
 - CLI en `bin/`, nunca en `public/` (raíz web). Contraseñas por entrada interactiva con eco apagado,
   no por argumento (historial de shell y `ps aux`)
 - El CLI y los controllers invocan los mismos casos de uso: dos adaptadores primarios, un dominio
